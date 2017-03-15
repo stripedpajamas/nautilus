@@ -20,5 +20,12 @@
   "bugs": {
     "url": "https://github.com/stripedpajamas/nautilus/issues"
   },
-  "homepage": "https://github.com/stripedpajamas/nautilus#readme"
+  "homepage": "https://github.com/stripedpajamas/nautilus#readme",
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "express": "^4.15.2",
+    "morgan": "^1.8.1",
+    "pug": "^2.0.0-beta11",
+    "socket.io": "^1.7.3"
+  }
 }

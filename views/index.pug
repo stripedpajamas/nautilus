@@ -1,0 +1,13 @@
+html
+    head
+        title= 'Nautilus'
+    body
+        div(class='app-title')
+            h1= 'Nautilus'
+            h3= 'a PowerShell management web app'
+        div(class='client-selector')
+            form(id='domain-form', action='/', method='post')
+                select(name='clientDomain')
+                    each domain in domains
+                        option(value=domain) #{domain}
+                input(type='submit', value='Go')
