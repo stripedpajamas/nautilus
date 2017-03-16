@@ -9,7 +9,7 @@ html
         div(class='client-selector')
             form(id='domain-form', action='/', method='post')
                 p= 'Select a client domain to get started:'
-                select(id='client-select-box', name='clientDomain')
+                select(id='client-select-box', name='clientDomain', autofocus)
                     each domain in domains
                         option(value=domain) #{domain}
                 input(id='go-button', type='submit', value='Go')

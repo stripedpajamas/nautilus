@@ -4,6 +4,7 @@
     height: 60px;
     background: #eee;
     top: 0;
+    border-bottom: 2px solid black;
 }
 .title-bar-text {
     position: inherit;
@@ -14,11 +15,14 @@
     font-size: 40px;
     margin: 8px;
 }
-.title-bar-text span {
+.title-bar-text button {
     font-family: monospace;
     position: inherit;
     right: 10px;
     top: 20px;
+}
+#fake-button-form {
+    display: inline;
 }
 
 .command-output {
@@ -37,23 +41,27 @@
     background: #eee;
     position: fixed;
     bottom: 0;
+    border-top: 2px solid black;
 }
 
 #command-label {
+    margin-top: 0;
     padding: 10px;
-    font-size: 20px;
+    bottom: 0;
+    font-size: 15px;
     font-family: monospace;
 }
 #command {
     background: lightgray;
-    width: 92%;
+    width: 95%;
     height: 30px;
     position: fixed;
     left: 50px;
-    bottom: 30px;
+    bottom: 28px;
     font-size: 15px;
     font-family: monospace;
     color: white;
+    padding: 0;
 }
 #command:focus {
     background: gray;

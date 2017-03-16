@@ -35,6 +35,16 @@ commandInput.onkeydown = function (keyboardEvent) {
   return true;
 };
 
+document.onkeyup = function (event) {
+  const e = event || window.event;
+  if (e.ctrlKey && e.which === 69) {
+    addResponse('Ending session...');
+    setTimeout(() => {
+      window.location.href = '../';
+    }, 1000);
+  }
+};
+
 socket.on('commandResponse', (response) => {
   addResponse(response);
 });
