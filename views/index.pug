@@ -1,13 +1,15 @@
 html
     head
         title= 'Nautilus'
+        link(rel='stylesheet', href='stylesheets/index.css')
     body
-        div(class='app-title')
-            h1= 'Nautilus'
-            h3= 'a PowerShell management web app'
+        div(class='title-bar')
+            div(class='title-bar-text')
+                h2= 'Nautilus'
         div(class='client-selector')
             form(id='domain-form', action='/', method='post')
-                select(name='clientDomain')
+                p= 'Select a client domain to get started:'
+                select(id='client-select-box', name='clientDomain')
                     each domain in domains
                         option(value=domain) #{domain}
-                input(type='submit', value='Go')
+                input(id='go-button', type='submit', value='Go')

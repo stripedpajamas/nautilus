@@ -1,0 +1,67 @@
+.title-bar {
+    position: fixed;
+    width: 100%;
+    height: 60px;
+    background: #eee;
+    top: 0;
+}
+.title-bar-text {
+    position: inherit;
+    left: 10px;
+}
+.title-bar-text > h2 {
+    position: inherit;
+    font-size: 40px;
+    margin: 8px;
+}
+.title-bar-text span {
+    font-family: monospace;
+    position: inherit;
+    right: 10px;
+    top: 20px;
+}
+
+.command-output {
+    width: 95%;
+    margin: 0 auto;
+    padding: 70px 0;
+}
+.command-output-line {
+    -webkit-margin-before: 0;
+    -webkit-margin-after: 0;
+    font-family: monospace;
+}
+.command-input {
+    width: 100%;
+    height: 60px;
+    background: #eee;
+    position: fixed;
+    bottom: 0;
+}
+
+#command-label {
+    padding: 10px;
+    font-size: 20px;
+    font-family: monospace;
+}
+#command {
+    background: lightgray;
+    width: 92%;
+    height: 30px;
+    position: fixed;
+    left: 50px;
+    bottom: 30px;
+    font-size: 15px;
+    font-family: monospace;
+    color: white;
+}
+#command:focus {
+    background: gray;
+}
+body {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+}
