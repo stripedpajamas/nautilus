@@ -2,6 +2,8 @@ html
     head
         title= 'Nautilus'
         link(rel='stylesheet', href='stylesheets/webShell.css')
+        script(src='https://code.jquery.com/jquery-1.11.1.js')
+        script(src='/socket.io/socket.io.js')
     body
         input(hidden, id='clientDomain', value=clientDomain)
         div(class='title-bar')
@@ -12,9 +14,7 @@ html
         div(class='command-input', id='in')
             p(id='command-label') ps>
             input(id='command', type='text', autofocus)
+        form(id='fake-button-form', action='/')
         script(type="text/javascript").
             const clientDomain = document.getElementById('clientDomain').value;
-        script(src='/socket.io/socket.io.js')
-        script(src='https://code.jquery.com/jquery-1.11.1.js')
         script(src='scripts/webShell.js')
-        form(id='fake-button-form', action='/')

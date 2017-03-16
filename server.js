@@ -9,6 +9,12 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
+const Shell = require('node-powershell');
+const path = require('path');
+
+const PSDIR = process.env.PSDIR || path.resolve(__dirname, '../');
+const ADMIN = process.env.ADMIN || 'quovadis';
+console.log('PSDIR is %s', PSDIR);
 
 // Middleware
 app.use(morgan('tiny'));
@@ -28,17 +34,45 @@ app.post('/', (req, res) => {
 
 io.on('connection', (socket) => {
   console.log('Got a new connection.');
+  const ps = new Shell();
 
   socket.on('initCon', (domain) => {
     console.log(`Ready to initialize PS with domain ${domain}`);
-  });
-  socket.on('command', (command) => {
-    console.log(`Got this command: ${command}`);
-    socket.emit('commandResponse', `Dummy response to your command (${command})`);
+    socket.emit('commandResponse', 'Please wait while we connect to O365...');
+    const adminUser = `${ADMIN}@${domain}`;
+    ps.addCommand(`& "${path.resolve(PSDIR, '_launcher_specified.ps1')}"`, [{ Domain: adminUser }])
+      .then(() => {
+        ps.invoke().then(() => {
+          console.log('No issues connecting to O365.');
+          socket.emit('commandResponse', 'Successfully connected to O365. Type <b>dir</b> to list available commands.');
+        }, (reason) => {
+          console.log('Error connecting to O365.');
+          socket.emit('commandResponse', reason);
+        });
+      });
   });
 
+  socket.on('command', (command) => {
+    console.log(`Got this command: ${command}`);
+    ps.addCommand(command)
+      .then(() => {
+        ps.invoke().then((output) => {
+          const htmlizedOutput = output.replace(/[\n\r]/img, '<br>');
+          socket.emit('commandResponse', htmlizedOutput);
+        }, (reason) => {
+          console.log('Error invoking PS command.');
+          socket.emit('commandResponse', reason);
+        });
+      });
+  });
+  /*
+  ps.on('output', (output) => {
+    socket.emit('commandResponse', output);
+  });
+  */
   socket.on('disconnect', () => {
     console.log('Disconnected.');
+    ps.dispose();
   });
 });
 

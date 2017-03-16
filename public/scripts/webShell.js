@@ -9,20 +9,30 @@ let lastResponse = null;
 
 function sendCommand(command) {
   socket.emit('command', command);
+  const newCommand = document.createElement('p');
+  newCommand.className = 'command-output-line self';
+  const newCommandText = document.createTextNode(`ps> ${command}`);
+  newCommand.appendChild(newCommandText);
+  if (!lastResponse) {
+    outElement.appendChild(newCommand);
+  } else {
+    outElement.insertBefore(newCommand, lastResponse.nextSibling);
+  }
+  newCommand.scrollIntoView();
+  lastResponse = newCommand;
 }
 
 function addResponse(response) {
-  const newResponse = document.createElement('p');
+  const newResponse = document.createElement('div');
   newResponse.className = 'command-output-line';
-  const newResponseText = document.createTextNode(response);
-  newResponse.appendChild(newResponseText);
+  const parsedResponse = $.parseHTML(response);
+  $(newResponse).append(parsedResponse);
   if (!lastResponse) {
     outElement.appendChild(newResponse);
-    newResponse.scrollIntoView();
   } else {
     outElement.insertBefore(newResponse, lastResponse.nextSibling);
-    newResponse.scrollIntoView();
   }
+  newResponse.scrollIntoView();
   lastResponse = newResponse;
 }
 
@@ -38,12 +48,17 @@ commandInput.onkeydown = function (keyboardEvent) {
 document.onkeyup = function (event) {
   const e = event || window.event;
   if (e.ctrlKey && e.which === 69) {
-    addResponse('Ending session...');
-    setTimeout(() => {
-      window.location.href = '../';
-    }, 1000);
+		cleanExit();
   }
 };
+
+function cleanExit() {
+	sendCommand('exit');
+	addResponse('Ending session...');
+	setTimeout(() => {
+		window.location.href = '../';
+	}, 1000);
+}
 
 socket.on('commandResponse', (response) => {
   addResponse(response);
