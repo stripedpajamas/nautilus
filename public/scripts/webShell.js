@@ -1,11 +1,15 @@
 const socket = io();
 
 // initialize PS connection with the selected client domain
-socket.emit('initCon', clientDomain);
+socket.emit('initCon', document.getElementById('in').getAttribute('data-domain'));
 
 const commandInput = document.getElementById('command');
 const outElement = document.getElementById('out');
 let lastResponse = null;
+
+function scrollToBottom () {
+  document.body.scrollTop = document.body.scrollHeight;
+}
 
 function sendCommand(command) {
   socket.emit('command', command);
@@ -13,12 +17,8 @@ function sendCommand(command) {
   newCommand.className = 'command-output-line self';
   const newCommandText = document.createTextNode(`ps> ${command}`);
   newCommand.appendChild(newCommandText);
-  if (!lastResponse) {
-    outElement.appendChild(newCommand);
-  } else {
-    outElement.insertBefore(newCommand, lastResponse.nextSibling);
-  }
-  newCommand.scrollIntoView();
+  outElement.appendChild(newCommand);
+  scrollToBottom();
   lastResponse = newCommand;
 }
 
@@ -27,12 +27,8 @@ function addResponse(response) {
   newResponse.className = 'command-output-line';
   const parsedResponse = $.parseHTML(response);
   $(newResponse).append(parsedResponse);
-  if (!lastResponse) {
-    outElement.appendChild(newResponse);
-  } else {
-    outElement.insertBefore(newResponse, lastResponse.nextSibling);
-  }
-  newResponse.scrollIntoView();
+  outElement.appendChild(newResponse);
+  scrollToBottom();
   lastResponse = newResponse;
 }
 
@@ -45,21 +41,27 @@ commandInput.onkeydown = function (keyboardEvent) {
   return true;
 };
 
+function cleanExit(alreadyExited) {
+  if (!alreadyExited) {
+    sendCommand('exit');
+  }
+  addResponse('Ending session...');
+  setTimeout(() => {
+    window.location.href = '../';
+  }, 1000);
+}
+
 document.onkeyup = function (event) {
   const e = event || window.event;
   if (e.ctrlKey && e.which === 69) {
-		cleanExit();
+    cleanExit();
   }
 };
 
-function cleanExit() {
-	sendCommand('exit');
-	addResponse('Ending session...');
-	setTimeout(() => {
-		window.location.href = '../';
-	}, 1000);
-}
-
 socket.on('commandResponse', (response) => {
   addResponse(response);
+});
+
+socket.on('exit', () => {
+  cleanExit(true);
 });

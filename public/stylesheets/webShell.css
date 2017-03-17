@@ -15,7 +15,7 @@
     font-size: 40px;
     margin: 8px;
 }
-.title-bar-text button {
+.title-bar-text input {
     font-family: monospace;
     position: inherit;
     right: 10px;

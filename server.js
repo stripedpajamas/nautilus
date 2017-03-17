@@ -9,12 +9,11 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
-const Shell = require('node-powershell');
 const path = require('path');
+const spawn = require('child_process').spawn;
 
 const PSDIR = process.env.PSDIR || path.resolve(__dirname, '../');
 const ADMIN = process.env.ADMIN || 'quovadis';
-console.log('PSDIR is %s', PSDIR);
 
 // Middleware
 app.use(morgan('tiny'));
@@ -34,45 +33,51 @@ app.post('/', (req, res) => {
 
 io.on('connection', (socket) => {
   console.log('Got a new connection.');
-  const ps = new Shell();
+  const args = [
+    '-NoLogo',
+    '-NoExit',
+    '-InputFormat',
+    'Text',
+    '-ExecutionPolicy',
+    'Unrestricted',
+    '-Command',
+    '-'];
+  const ps = spawn('powershell.exe', args);
+  console.log(`Launched with PID ${ps.pid}`);
 
   socket.on('initCon', (domain) => {
     console.log(`Ready to initialize PS with domain ${domain}`);
     socket.emit('commandResponse', 'Please wait while we connect to O365...');
     const adminUser = `${ADMIN}@${domain}`;
-    ps.addCommand(`& "${path.resolve(PSDIR, '_launcher_specified.ps1')}"`, [{ Domain: adminUser }])
-      .then(() => {
-        ps.invoke().then(() => {
-          console.log('No issues connecting to O365.');
-          socket.emit('commandResponse', 'Successfully connected to O365. Type <b>dir</b> to list available commands.');
-        }, (reason) => {
-          console.log('Error connecting to O365.');
-          socket.emit('commandResponse', reason);
-        });
-      });
+    const initCmd = `& '${path.resolve(PSDIR, '_launcher_specified.ps1')}' -Domain ${adminUser}`;
+    ps.stdin.write(initCmd);
+    ps.stdin.write('\r\n');
   });
 
   socket.on('command', (command) => {
     console.log(`Got this command: ${command}`);
-    ps.addCommand(command)
-      .then(() => {
-        ps.invoke().then((output) => {
-          const htmlizedOutput = output.replace(/[\n\r]/img, '<br>');
-          socket.emit('commandResponse', htmlizedOutput);
-        }, (reason) => {
-          console.log('Error invoking PS command.');
-          socket.emit('commandResponse', reason);
-        });
-      });
+    if (command === 'exit') {
+      socket.emit('exit');
+      socket.disconnect();
+    } else {
+      // deal with sending the command to powershell
+      ps.stdin.write(`${command}\r\n`);
+    }
   });
-  /*
-  ps.on('output', (output) => {
-    socket.emit('commandResponse', output);
+  // deal with receiving output from powershell and sending it to socket
+  let outputBuffs = [];
+  ps.stdout.on('data', (chunk) => {
+    if (chunk.toString().indexOf('###') !== -1) { // listen for an End-of-Output token
+      const htmlizedOutput = Buffer.concat(outputBuffs).toString().replace(/[\n\r]/img, '<br>');
+      socket.emit('commandResponse', htmlizedOutput);
+      outputBuffs = [];
+    } else {
+      outputBuffs.push(chunk);
+    }
   });
-  */
   socket.on('disconnect', () => {
     console.log('Disconnected.');
-    ps.dispose();
+    ps.kill();
   });
 });
 
