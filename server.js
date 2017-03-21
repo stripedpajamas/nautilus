@@ -12,20 +12,43 @@ const morgan = require('morgan');
 const path = require('path');
 const fs = require('fs');
 const spawn = require('child_process').spawn;
+const cookieParser = require('cookie-parser');
+const expressSession = require('express-session');
 
 // *** passport stuff
 const passport = require('passport');
 const Strategy = require('passport-local').Strategy;
 
+// temporary auth stuff
+const users = {
+  quovadis: {
+    username: 'quovadis',
+    password: 'test123',
+    id: 273,
+  },
+};
+
 passport.use(new Strategy({
   session: false,
 }, (username, password, done) => {
-  if (username === 'quovadis' && password === 'test123') {
-    done(username);
+  if (users[username] && users[username].password === password) {
+    done(null, users[username]);
   } else {
     done(null, false);
   }
 }));
+
+passport.serializeUser((user, cb) => {
+  cb(null, user.id);
+});
+passport.deserializeUser((id, cb) => {
+  if (id === 1) {
+    cb(null, users.quovadis);
+  } else {
+    cb(null, null);
+  }
+});
+
 // *** end passport stuff
 
 
@@ -59,16 +82,18 @@ const domains = fs.readFileSync(path.resolve(PSDIR, 'clients.csv'), { encoding: 
 
 // Middleware
 app.use(morgan('tiny'));
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(expressSession({ secret: 'twoseventythree tomato sauce', resave: false, saveUninitialized: false, secure: true }));
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.set('view engine', 'pug');
 app.use(passport.initialize());
+app.use(passport.session());
 
-app.post('/login',
-  passport.authenticate('local', { failureRedirect: '/login' }),
-  (req, res) => {
-    res.redirect('/');
-  });
+app.post('/login', passport.authenticate('local', {
+  failureRedirect: '/',
+  successRedirect: '/',
+}));
 
 app.get('/', (req, res) => {
   res.render('index', { domains, user: req.user });
