@@ -1,7 +1,7 @@
 html
     head
         title= 'Nautilus'
-        link(rel='stylesheet', href='stylesheets/webShell.css')
+        link(rel='stylesheet', href='/stylesheets/webShell.css')
         script(src='https://code.jquery.com/jquery-1.11.1.js')
         script(src='/socket.io/socket.io.js')
     body
@@ -13,4 +13,4 @@ html
         div(class='command-input', id='in', data-domain=clientDomain)
             p(id='command-label') ps>
             input(id='command', type='text', autofocus)
-        script(src='scripts/webShell.js')
+        script(src='/scripts/webShell.js')

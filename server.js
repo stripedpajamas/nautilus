@@ -7,7 +7,6 @@ const express = require('express');
 const app = express();
 const http = require('http');
 const https = require('https');
-const io = require('socket.io')(http);
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const path = require('path');
@@ -26,13 +25,16 @@ const lex = require('greenlock-express').create({
   store: leStore.create({ configDir: './letsencrypt/' }),
   approveDomains: ['nautilus.quo.cc'],
 });
-// handles acme-challenge and redirects to https
 http.createServer(
   lex.middleware(
     redirectHttps())).listen(80, () => {
       console.log('Listening for ACME http-01 challenges');
     });
+const httpsServer = https.createServer(lex.httpsOptions, lex.middleware(app)).listen(443, () => {
+  console.log('Listening for ACME tls-sni-01 challenges and serving secure Nautilus app');
+});
 // *** end certificate stuff
+const io = require('socket.io')(httpsServer);
 
 const PSDIR = process.env.PSDIR || path.resolve(__dirname, '../');
 const ADMIN = process.env.ADMIN || 'quovadis';
@@ -48,7 +50,7 @@ app.get('/', (req, res) => {
   res.render('index', { domains });
 });
 
-app.post('/', (req, res) => {
+app.post('/shell', (req, res) => {
   res.render('webShell', { clientDomain: req.body.clientDomain });
 });
 
@@ -102,6 +104,3 @@ io.on('connection', (socket) => {
   });
 });
 
-https.createServer(lex.httpsOptions, lex.middleware(app)).listen(443, () => {
-  console.log('Listening for ACME tls-sni-01 challenges and serving secure Nautilus app');
-});
