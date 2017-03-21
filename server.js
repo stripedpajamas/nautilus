@@ -5,7 +5,8 @@
 const express = require('express');
 
 const app = express();
-const http = require('http').Server(app);
+const http = require('http');
+const https = require('https');
 const io = require('socket.io')(http);
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
@@ -13,9 +14,29 @@ const path = require('path');
 const fs = require('fs');
 const spawn = require('child_process').spawn;
 
+// *** certificate stuff
+const leStore = require('le-store-certbot');
+const leChallenge = require('le-challenge-fs');
+const redirectHttps = require('redirect-https');
+const lex = require('greenlock-express').create({
+  server: 'staging',
+  email: 'peter@quo.cc',
+  agreeTos: true,
+  challenges: { 'http-01': leChallenge.create({ webrootPath: './public/.well-known/acme-challenges' }) },
+  store: leStore.create({ configDir: './letsencrypt/' }),
+  approveDomains: ['nautilus.quo.cc'],
+});
+// handles acme-challenge and redirects to https
+http.createServer(
+  lex.middleware(
+    redirectHttps())).listen(80, () => {
+      console.log('Listening for ACME http-01 challenges');
+    });
+// *** end certificate stuff
+
 const PSDIR = process.env.PSDIR || path.resolve(__dirname, '../');
 const ADMIN = process.env.ADMIN || 'quovadis';
-const domains = fs.readFileSync(path.resolve(PSDIR, 'clients.csv'), { encoding: 'UTF-8' }).split(/[\r\n]/);
+const domains = fs.readFileSync(path.resolve(PSDIR, 'clients.csv'), { encoding: 'UTF-8' }).split('\n');
 
 // Middleware
 app.use(morgan('tiny'));
@@ -81,6 +102,6 @@ io.on('connection', (socket) => {
   });
 });
 
-http.listen(process.env.PORT || 3000, () => {
-  console.log(`Listening on port ${process.env.PORT || 3000}`);
+https.createServer(lex.httpsOptions, lex.middleware(app)).listen(443, () => {
+  console.log('Listening for ACME tls-sni-01 challenges and serving secure Nautilus app');
 });

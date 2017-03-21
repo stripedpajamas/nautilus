@@ -24,8 +24,12 @@
   "dependencies": {
     "body-parser": "^1.17.1",
     "express": "^4.15.2",
+    "greenlock-express": "^2.0.9",
+    "le-challenge-fs": "^2.0.8",
+    "le-store-certbot": "^2.0.3",
     "morgan": "^1.8.1",
     "pug": "^2.0.0-beta11",
+    "redirect-https": "^1.1.1",
     "socket.io": "^1.7.3"
   }
 }
