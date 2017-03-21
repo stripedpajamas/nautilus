@@ -10,18 +10,18 @@ const io = require('socket.io')(http);
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const path = require('path');
+const fs = require('fs');
 const spawn = require('child_process').spawn;
 
 const PSDIR = process.env.PSDIR || path.resolve(__dirname, '../');
 const ADMIN = process.env.ADMIN || 'quovadis';
+const domains = fs.readFileSync(path.resolve(PSDIR, 'clients.csv'), { encoding: 'UTF-8' }).split(/[\r\n]/);
 
 // Middleware
 app.use(morgan('tiny'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static('public'));
 app.set('view engine', 'pug');
-
-const domains = ['acomedsupply.com', 'messiah-nc.org']; // test domains
 
 app.get('/', (req, res) => {
   res.render('index', { domains });
