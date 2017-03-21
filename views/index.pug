@@ -6,10 +6,20 @@ html
         div(class='title-bar')
             div(class='title-bar-text')
                 h2= 'Nautilus'
-        div(class='client-selector')
-            form(id='domain-form', action='/shell', method='post')
-                p= 'Select a client domain to get started:'
-                select(id='client-select-box', name='clientDomain', autofocus)
-                    each domain in domains
-                        option(value=domain) #{domain}
-                input(id='go-button', type='submit', value='Go')
+        if user
+            div(class='container')
+                form(id='domain-form', action='/shell', method='post')
+                    p= 'Select a client domain to get started:'
+                    select(id='client-select-box', name='clientDomain', autofocus)
+                        each domain in domains
+                            option(value=domain) #{domain}
+                    input(id='go-button', type='submit', value='Go')
+        else
+            div(class='container')
+                form(id='login-form', action='/login', method='post')
+                    div
+                        input(type='text', name='username')
+                    div
+                        input(type='password', name='password')
+                    div
+                        input(type='submit', value='Login')

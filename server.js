@@ -13,6 +13,22 @@ const path = require('path');
 const fs = require('fs');
 const spawn = require('child_process').spawn;
 
+// *** passport stuff
+const passport = require('passport');
+const Strategy = require('passport-local').Strategy;
+
+passport.use(new Strategy({
+  session: false,
+}, (username, password, done) => {
+  if (username === 'quovadis' && password === 'test123') {
+    done(username);
+  } else {
+    done(null, false);
+  }
+}));
+// *** end passport stuff
+
+
 // *** certificate stuff
 const leStore = require('le-store-certbot');
 const leChallenge = require('le-challenge-fs');
@@ -25,6 +41,7 @@ const lex = require('greenlock-express').create({
   store: leStore.create({ configDir: './letsencrypt/' }),
   approveDomains: ['nautilus.quo.cc'],
 });
+
 http.createServer(
   lex.middleware(
     redirectHttps())).listen(80, () => {
@@ -45,9 +62,16 @@ app.use(morgan('tiny'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static('public'));
 app.set('view engine', 'pug');
+app.use(passport.initialize());
+
+app.post('/login',
+  passport.authenticate('local', { failureRedirect: '/login' }),
+  (req, res) => {
+    res.redirect('/');
+  });
 
 app.get('/', (req, res) => {
-  res.render('index', { domains });
+  res.render('index', { domains, user: req.user });
 });
 
 app.post('/shell', (req, res) => {
