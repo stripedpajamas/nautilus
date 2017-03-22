@@ -13,26 +13,27 @@ const path = require('path');
 const fs = require('fs');
 const spawn = require('child_process').spawn;
 const cookieParser = require('cookie-parser');
-const expressSession = require('express-session');
+const session = require('express-session');
+const ensureLogin = require('connect-ensure-login');
 
 // *** passport stuff
 const passport = require('passport');
 const Strategy = require('passport-local').Strategy;
 
 // temporary auth stuff
-const users = {
-  quovadis: {
+const users = [
+  {
+    id: 1,
     username: 'quovadis',
     password: 'test123',
-    id: 273,
   },
-};
+];
 
 passport.use(new Strategy({
   session: false,
 }, (username, password, done) => {
-  if (users[username] && users[username].password === password) {
-    done(null, users[username]);
+  if (users[0].username === username && users[0].password === password) {
+    done(null, users[0]);
   } else {
     done(null, false);
   }
@@ -43,7 +44,7 @@ passport.serializeUser((user, cb) => {
 });
 passport.deserializeUser((id, cb) => {
   if (id === 1) {
-    cb(null, users.quovadis);
+    cb(null, users[0]);
   } else {
     cb(null, null);
   }
@@ -83,23 +84,21 @@ const domains = fs.readFileSync(path.resolve(PSDIR, 'clients.csv'), { encoding: 
 // Middleware
 app.use(morgan('tiny'));
 app.use(cookieParser());
-app.use(expressSession({ secret: 'twoseventythree tomato sauce', resave: false, saveUninitialized: false, secure: true }));
+app.use(session({ secret: 'twoseventythree tomato sauce', resave: false, saveUninitialized: false, secure: true }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 app.set('view engine', 'pug');
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.post('/login', passport.authenticate('local', {
-  failureRedirect: '/',
-  successRedirect: '/',
-}));
+app.post('/login', passport.authenticate('local', { failureRedirect: '/', successRedirect: '/' }));
 
 app.get('/', (req, res) => {
   res.render('index', { domains, user: req.user });
 });
 
 app.post('/shell', (req, res) => {
+  ensureLogin.ensureLoggedIn({ setReturnTo: false });
   res.render('webShell', { clientDomain: req.body.clientDomain });
 });
 
