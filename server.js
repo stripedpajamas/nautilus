@@ -15,6 +15,7 @@ const spawn = require('child_process').spawn;
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const ensureLogin = require('connect-ensure-login');
+const favicon = require('serve-favicon');
 
 // *** passport stuff
 const passport = require('passport');
@@ -82,6 +83,7 @@ const ADMIN = process.env.ADMIN || 'quovadis';
 const domains = fs.readFileSync(path.resolve(PSDIR, 'clients.csv'), { encoding: 'UTF-8' }).split('\n');
 
 // Middleware
+app.use(favicon(path.resolve('public', 'favicon.ico')));
 app.use(morgan('tiny'));
 app.use(cookieParser());
 app.use(session({ secret: 'twoseventythree tomato sauce', resave: false, saveUninitialized: false, secure: true }));
