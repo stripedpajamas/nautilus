@@ -3,8 +3,6 @@
  */
 
 const express = require('express');
-
-const app = express();
 const http = require('http');
 const https = require('https');
 const bodyParser = require('body-parser');
@@ -45,6 +43,7 @@ passport.deserializeUser((id, cb) => {
 });
 // *** end passport stuff
 
+const app = express();
 
 // *** certificate stuff
 const leStore = require('le-store-certbot');
