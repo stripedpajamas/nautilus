@@ -25,7 +25,7 @@ const users = [
   {
     id: 1,
     username: 'quovadis',
-    password: 'test123',
+    password: 'Sith0Pi5Hoc$',
   },
 ];
 

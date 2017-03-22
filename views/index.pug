@@ -6,20 +6,21 @@ html
         div(class='title-bar')
             div(class='title-bar-text')
                 h2= 'Nautilus'
-        if user
-            div(class='container')
+        if !user
+            div(id='domain-container')
                 form(id='domain-form', action='/shell', method='post')
-                    p= 'Select a client domain to get started:'
+                    label(for='client-select-box') Select a client domain to get started:
                     select(id='client-select-box', name='clientDomain', autofocus)
                         each domain in domains
                             option(value=domain) #{domain}
-                    input(id='go-button', type='submit', value='Go')
+                    div(id='lower')
+                        input(id='go-button', type='submit', value='Go')
         else
-            div(class='container')
+            div(id='login-container')
                 form(id='login-form', action='/login', method='post')
-                    div
-                        input(type='text', name='username')
-                    div
-                        input(type='password', name='password')
-                    div
+                    label(for='username') Username:
+                    input(type='text', name='username', id='username')
+                    label(for='password') Password:
+                    input(type='password', name='password', id='password')
+                    div(id='lower')
                         input(type='submit', value='Login')
