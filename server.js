@@ -20,37 +20,29 @@ const favicon = require('serve-favicon');
 // *** passport stuff
 const passport = require('passport');
 const Strategy = require('passport-local').Strategy;
+const db = require('./db');
 
-// temporary auth stuff
-const users = [
-  {
-    id: 1,
-    username: 'quovadis',
-    password: 'Sith0Pi5Hoc$',
-  },
-];
-
-passport.use(new Strategy({
-  session: false,
-}, (username, password, done) => {
-  if (users[0].username === username && users[0].password === password) {
-    done(null, users[0]);
-  } else {
-    done(null, false);
-  }
+passport.use(new Strategy((username, password, cb) => {
+  db.users.findByUsername(username, (err, user) => {
+    if (err) { return cb(err); }
+    if (!user) { return cb(null, false); }
+    if (user.password !== password) { return cb(null, false); }
+    return cb(null, user);
+  });
 }));
 
 passport.serializeUser((user, cb) => {
   cb(null, user.id);
 });
-passport.deserializeUser((id, cb) => {
-  if (id === 1) {
-    cb(null, users[0]);
-  } else {
-    cb(null, null);
-  }
-});
 
+passport.deserializeUser((id, cb) => {
+  db.users.findById(id, (err, user) => {
+    if (err) {
+      return cb(err);
+    }
+    return cb(null, user);
+  });
+});
 // *** end passport stuff
 
 
@@ -124,7 +116,6 @@ io.on('connection', (socket) => {
     const adminUser = `${ADMIN}@${domain}`;
     const initCmd = `& '${path.resolve(PSDIR, '_launcher_specified.ps1')}' -Domain ${adminUser}`;
     ps.stdin.write(initCmd);
-    ps.stdin.write('\r\n');
   });
 
   socket.on('command', (command) => {

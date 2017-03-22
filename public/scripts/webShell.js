@@ -33,8 +33,8 @@ function addResponse(response) {
 }
 
 commandInput.onkeydown = function (keyboardEvent) {
-  if (keyboardEvent.keyCode === 13 && commandInput.value.length) {
-    sendCommand(commandInput.value);
+  if (keyboardEvent.keyCode === 13) {
+    sendCommand(commandInput.value.trim().toLowerCase());
     commandInput.value = '';
     return false;
   }
