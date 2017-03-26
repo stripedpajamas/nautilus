@@ -14,6 +14,7 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const ensureLogin = require('connect-ensure-login');
 const favicon = require('serve-favicon');
+const getClients = require('./getClients.js');
 
 // *** passport stuff
 const passport = require('passport');
@@ -71,7 +72,17 @@ const io = require('socket.io')(httpsServer);
 
 const PSDIR = process.env.PSDIR || path.resolve(__dirname, '../');
 const ADMIN = process.env.ADMIN || 'quovadis';
-const domains = fs.readFileSync(path.resolve(PSDIR, 'clients.csv'), { encoding: 'UTF-8' }).split('\n');
+const domains = [];
+const clientNames = [];
+getClients((err, clientList) => {
+  if (err) console.log('Could not get Client List.');
+  clientList.forEach((client) => {
+    domains.push(client.domain);
+    clientNames.push(client.name);
+  });
+  console.log('Got client list from database');
+});
+// fs.readFileSync(path.resolve(PSDIR, 'clients.csv'), { encoding: 'UTF-8' }).split('\n');
 
 // Middleware
 app.use(favicon(path.resolve('public', 'favicon.ico')));

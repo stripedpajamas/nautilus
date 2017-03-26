@@ -2,7 +2,7 @@
   "name": "nautilus",
   "version": "0.0.1",
   "description": "a socket-based web app to oversee powershell management of O365",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -31,6 +31,7 @@
     "greenlock-express": "^2.0.9",
     "le-challenge-fs": "^2.0.8",
     "le-store-certbot": "^2.0.3",
+    "mongoose": "^4.9.2",
     "morgan": "^1.8.1",
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",

@@ -15,7 +15,7 @@ function sendCommand(command) {
   socket.emit('command', command);
   const newCommand = document.createElement('p');
   newCommand.className = 'command-output-line self';
-  const newCommandText = document.createTextNode(`ps> ${command}`);
+  const newCommandText = document.createTextNode('ps> ' + command);
   newCommand.appendChild(newCommandText);
   outElement.appendChild(newCommand);
   scrollToBottom();
@@ -46,7 +46,7 @@ function cleanExit(alreadyExited) {
     sendCommand('exit');
   }
   addResponse('Ending session...');
-  setTimeout(() => {
+  setTimeout(function () {
     window.location.href = '../';
   }, 1000);
 }
@@ -58,10 +58,10 @@ document.onkeyup = function (event) {
   }
 };
 
-socket.on('commandResponse', (response) => {
+socket.on('commandResponse', function (response) {
   addResponse(response);
 });
 
-socket.on('exit', () => {
+socket.on('exit', function () {
   cleanExit(true);
 });
