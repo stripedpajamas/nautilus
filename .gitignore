@@ -2,3 +2,4 @@
 .idea/
 .vs/
 /db/users.js
+/daemon

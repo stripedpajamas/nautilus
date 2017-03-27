@@ -9,10 +9,10 @@ html
         if user
             div(id='domain-container')
                 form(id='domain-form', action='/shell', method='post')
-                    label(for='client-select-box') Select a client domain to get started:
-                    select(id='client-select-box', name='clientDomain', autofocus)
-                        each domain in domains
-                            option(value=domain) #{domain}
+                    label(for='client-select-box') Select a client to get started:
+                    select(id='client-select-box', name='clientName', autofocus)
+                        each client in clients
+                            option(value=client) #{client}
                     div(id='lower')
                         input(id='go-button', type='submit', value='Go')
         else

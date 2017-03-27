@@ -8,13 +8,12 @@ const https = require('https');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const path = require('path');
-const fs = require('fs');
-const spawn = require('child_process').spawn;
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const ensureLogin = require('connect-ensure-login');
 const favicon = require('serve-favicon');
-const getClients = require('./getClients.js');
+const getClients = require('./lib/getClients');
+const psSocket = require('./lib/ps');
 
 // *** passport stuff
 const passport = require('passport');
@@ -45,16 +44,19 @@ passport.deserializeUser((id, cb) => {
 // *** end passport stuff
 
 const app = express();
+const PSDIR = process.env.PSDIR || path.resolve(__dirname, '../');
+const ADMIN = process.env.ADMIN || 'quovadis';
+const publicDir = path.resolve(__dirname, 'public');
 
 // *** certificate stuff
 const leStore = require('le-store-certbot');
 const leChallenge = require('le-challenge-fs');
 const redirectHttps = require('redirect-https');
 const lex = require('greenlock-express').create({
-  server: 'staging',
+  server: 'https://acme-v01.api.letsencrypt.org/directory',
   email: 'peter@quo.cc',
   agreeTos: true,
-  challenges: { 'http-01': leChallenge.create({ webrootPath: './public/.well-known/acme-challenges' }) },
+  challenges: { 'http-01': leChallenge.create({ webrootPath: publicDir }) },
   store: leStore.create({ configDir: './letsencrypt/' }),
   approveDomains: ['nautilus.quo.cc'],
 });
@@ -70,27 +72,28 @@ const httpsServer = https.createServer(lex.httpsOptions, lex.middleware(app)).li
 // *** end certificate stuff
 const io = require('socket.io')(httpsServer);
 
-const PSDIR = process.env.PSDIR || path.resolve(__dirname, '../');
-const ADMIN = process.env.ADMIN || 'quovadis';
-const domains = [];
+
+
 const clientNames = [];
+let clients = null;
 getClients((err, clientList) => {
   if (err) console.log('Could not get Client List.');
+  clients = clientList;
   clientList.forEach((client) => {
-    domains.push(client.domain);
     clientNames.push(client.name);
   });
+  clientNames.sort();
   console.log('Got client list from database');
 });
-// fs.readFileSync(path.resolve(PSDIR, 'clients.csv'), { encoding: 'UTF-8' }).split('\n');
 
 // Middleware
-app.use(favicon(path.resolve('public', 'favicon.ico')));
+app.use(favicon(path.resolve(publicDir, 'favicon.ico')));
 app.use(morgan('tiny'));
 app.use(cookieParser());
 app.use(session({ secret: 'twoseventythree tomato sauce', resave: false, saveUninitialized: false, secure: true }));
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static('public'));
+app.use(express.static(publicDir));
+app.set('views', path.resolve(__dirname, 'views'));
 app.set('view engine', 'pug');
 app.use(passport.initialize());
 app.use(passport.session());
@@ -98,60 +101,17 @@ app.use(passport.session());
 app.post('/login', passport.authenticate('local', { failureRedirect: '/', successRedirect: '/' }));
 
 app.get('/', (req, res) => {
-  res.render('index', { domains, user: req.user });
+  res.render('index', { clients: clientNames, user: req.user });
 });
 
 app.post('/shell', (req, res) => {
   ensureLogin.ensureLoggedIn({ setReturnTo: false });
-  res.render('webShell', { clientDomain: req.body.clientDomain });
+  const clientName = req.body.clientName;
+  const clientRec = clients.find(client => clientName === client.name);
+  res.render('webShell', { clientDomain: clientRec.domain });
 });
 
 io.on('connection', (socket) => {
-  console.log('Got a new connection.');
-  const args = [
-    '-NoLogo',
-    '-NoExit',
-    '-InputFormat',
-    'Text',
-    '-ExecutionPolicy',
-    'Unrestricted',
-    '-Command',
-    '-'];
-  const ps = spawn('powershell.exe', args);
-  console.log(`Launched with PID ${ps.pid}`);
-
-  socket.on('initCon', (domain) => {
-    console.log(`Ready to initialize PS with domain ${domain}`);
-    socket.emit('commandResponse', 'Please wait while we connect to O365...');
-    const adminUser = `${ADMIN}@${domain}`;
-    const initCmd = `& '${path.resolve(PSDIR, '_launcher_specified.ps1')}' -Domain ${adminUser}`;
-    ps.stdin.write(initCmd);
-  });
-
-  socket.on('command', (command) => {
-    console.log(`Got this command: ${command}`);
-    if (command === 'exit') {
-      socket.emit('exit');
-      socket.disconnect();
-    } else {
-      // deal with sending the command to powershell
-      ps.stdin.write(`${command}\r\n`);
-    }
-  });
-  // deal with receiving output from powershell and sending it to socket
-  let outputBuffs = [];
-  ps.stdout.on('data', (chunk) => {
-    if (chunk.toString().indexOf('###') !== -1) { // listen for an End-of-Output token
-      const htmlizedOutput = Buffer.concat(outputBuffs).toString().replace(/[\n\r]/img, '<br>');
-      socket.emit('commandResponse', htmlizedOutput);
-      outputBuffs = [];
-    } else {
-      outputBuffs.push(chunk);
-    }
-  });
-  socket.on('disconnect', () => {
-    console.log('Disconnected.');
-    ps.kill();
-  });
+  psSocket(socket, ADMIN, PSDIR);
 });
 
