@@ -22,6 +22,16 @@
     top: 20px;
 }
 
+h2 a,
+h2 a:link,
+h2 a:visited,
+h2 a:hover,
+h2 a:focus,
+h2 a:active {
+    color: inherit;
+    text-decoration: none;
+}
+
 #login-container {
     position: fixed;
     width: 340px;
@@ -46,6 +56,18 @@
     border: 1px solid #ccc;
     box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
 }
+#db-container {
+    position: fixed;
+    width: 340px;
+    height: 320px;
+    top: 50%;
+    left: 50%;
+    margin-top: -140px;
+    margin-left: -170px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
+}
 form {
     margin: 0 auto;
     margin-top: 20px;
@@ -57,18 +79,12 @@ label {
     padding-top: 10px;
     font-size: 14px;
 }
-p a {
-    font-size: 11px;
-    color: #aaa;
-    float: right;
-    margin-top: -13px;
-    margin-right: 20px;
-    -webkit-transition: all .4s ease;
-    -moz-transition: all .4s ease;
-    transition: all .4s ease;
-}
-p a:hover {
+p {
     color: #555;
+    display: inline-block;
+    margin-left: 18px;
+    padding-top: 0px;
+    font-size: 14px;
 }
 select {
     color: #777;
@@ -120,7 +136,8 @@ input[type=password]:focus {
     height: 69px;
     margin-top: 20px;
 }
-input[type=submit] {
+input[type=submit],
+#other-button {
     float: right;
     margin-right: 30px;
     margin-top: 10px;
@@ -137,12 +154,14 @@ input[type=submit] {
     border: 1px solid #112847;
     cursor: pointer;
 }
-input[type=submit]:hover {
+input[type=submit]:hover,
+#other-button:hover {
     background-image: -webkit-gradient(linear, left top, left bottom, from(#2177b6), to(#174b78));
     background-image: -moz-linear-gradient(top left 90deg, #2177b6 0%, #174b78 100%);
     background-image: linear-gradient(top left 90deg, #2177b6 0%, #174b78 100%);
 }
-input[type=submit]:active {
+input[type=submit]:active,
+#other-button:active {
     background-image: -webkit-gradient(linear, left top, left bottom, from(#174b78), to(#2177b6));
     background-image: -moz-linear-gradient(top left 90deg, #174b78 0%, #2177b6 100%);
     background-image: linear-gradient(top left 90deg, #174b78 0%, #2177b6 100%);

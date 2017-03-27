@@ -2,10 +2,12 @@ html
     head
         title= 'Nautilus'
         link(rel='stylesheet', href='stylesheets/index.css')
+        script(src='scripts/helpers.js')
     body
         div(class='title-bar')
             div(class='title-bar-text')
-                h2= 'Nautilus'
+                h2
+                    a(href='/') Nautilus
         if user
             div(id='domain-container')
                 form(id='domain-form', action='/shell', method='post')
@@ -15,6 +17,7 @@ html
                             option(value=client) #{client}
                     div(id='lower')
                         input(id='go-button', type='submit', value='Go')
+                        input(id='other-button', type='button', onclick="goTo('/admin')", value='Admin')
         else
             div(id='login-container')
                 form(id='login-form', action='/login', method='post')

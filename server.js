@@ -10,9 +10,9 @@ const morgan = require('morgan');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
-const ensureLogin = require('connect-ensure-login');
+const ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
 const favicon = require('serve-favicon');
-const getClients = require('./lib/getClients');
+const clientDb = require('./lib/clientDb');
 const psSocket = require('./lib/ps');
 
 // *** passport stuff
@@ -73,10 +73,9 @@ const httpsServer = https.createServer(lex.httpsOptions, lex.middleware(app)).li
 const io = require('socket.io')(httpsServer);
 
 
-
 const clientNames = [];
 let clients = null;
-getClients((err, clientList) => {
+clientDb.getClients((err, clientList) => {
   if (err) console.log('Could not get Client List.');
   clients = clientList;
   clientList.forEach((client) => {
@@ -104,12 +103,40 @@ app.get('/', (req, res) => {
   res.render('index', { clients: clientNames, user: req.user });
 });
 
-app.post('/shell', (req, res) => {
-  ensureLogin.ensureLoggedIn({ setReturnTo: false });
-  const clientName = req.body.clientName;
-  const clientRec = clients.find(client => clientName === client.name);
-  res.render('webShell', { clientDomain: clientRec.domain });
+app.get('shell', (req, res) => {
+  res.redirect('/');
 });
+
+app.post('/shell',
+  ensureLoggedIn({ setReturnTo: false }),
+  (req, res) => {
+    const clientName = req.body.clientName;
+    const clientRec = clients.find(client => clientName === client.name);
+    res.render('webShell', { clientDomain: clientRec.domain });
+  });
+
+app.get('/admin',
+  ensureLoggedIn('/'),
+  (req, res) => {
+    res.render('admin');
+  });
+
+app.post('/admin',
+  ensureLoggedIn('/'),
+  (req, res) => {
+    const newClientName = req.body.newClientName;
+    const newClientDomain = req.body.newClientDomain;
+    if (newClientName && newClientDomain) {
+      clientDb.addClient(newClientName, newClientDomain, (err, result) => {
+        if (err) {
+          return res.render('admin', { posted: true, ok: false, message: err });
+        }
+        return res.render('admin', { posted: true, ok: true, message: result });
+      });
+    } else {
+      res.send('Did not get what we expected to get from the form.');
+    }
+  });
 
 io.on('connection', (socket) => {
   psSocket(socket, ADMIN, PSDIR);
