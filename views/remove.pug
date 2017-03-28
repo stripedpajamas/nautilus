@@ -1,0 +1,41 @@
+html
+    head
+        title= 'Nautilus'
+        link(rel='stylesheet', href='stylesheets/index.css')
+        script(src='scripts/helpers.js')
+body
+    div(class='title-bar')
+        div(class='title-bar-text')
+            h2
+                a(href='/') Nautilus
+    if !posted
+        div(class='container', id='db-div')
+            form(id='db-form', action='/remove', method='post')
+                p
+                    b Remove a client to Nautilus
+                br
+                label(for='client-select-box') Select a company name to remove:
+                    select(id='client-select-box', name='clientName', autofocus)
+                        each client in clients
+                            option(value=client) #{client}
+                    div(id='lower')
+                        input(id='go-button', type='submit', value='Nuke It')
+                        input(class='other-button', type='button', onclick="goTo('../')", value='Home')
+    else
+        div(class='container', id='db-div')
+            if ok
+                form(id='db-form', action='/remove', method='get')
+                    b
+                        p Successfully removed client from database.
+                        br
+                    div(id='lower')
+                        input(id='go-button', type='submit', value='Return')
+            else
+                form(id='db-form', action='/admin', method='get')
+                    b
+                        p Failed to remove client from database.
+                        br
+                        div
+                            p= message
+                    div(id='lower')
+                        input(id='go-button', type='submit', value='Return')

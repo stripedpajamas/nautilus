@@ -1,0 +1,41 @@
+html
+    head
+        title= 'Nautilus'
+        link(rel='stylesheet', href='stylesheets/index.css')
+        script(src='scripts/helpers.js')
+body
+        div(class='title-bar')
+            div(class='title-bar-text')
+                h2
+                    a(href='/') Nautilus
+        if !posted
+            div(class='container', id='db-div')
+                form(id='db-form', action='/add', method='post')
+                    p
+                        b Add a new client to Nautilus
+                    br
+                    label(for='newClientName') Client Name:
+                    input(type='text', name='newClientName', id='newClientName', autofocus)
+                    label(for='newClientDomain') Client Domain:
+                    input(type='text', name='newClientDomain', id='newClientDomain')
+                    div(id='lower')
+                        input(id='go-button', type='submit', value='Add')
+                        input(class='other-button', type='button', onclick="goTo('../')", value='Home')
+        else
+            div(class='container', id='db-div')
+                if ok
+                    form(id='db-form', action='/add', method='get')
+                        b
+                            p Successfully added new client to database.
+                            br
+                        div(id='lower')
+                            input(id='go-button', type='submit', value='Return')
+                else
+                    form(id='db-form', action='/admin', method='get')
+                        b
+                            p Failed to add new client to database.
+                            br
+                            div
+                                p= message
+                        div(id='lower')
+                            input(id='go-button', type='submit', value='Return')

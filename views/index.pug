@@ -9,7 +9,7 @@ html
                 h2
                     a(href='/') Nautilus
         if user
-            div(id='domain-container')
+            div(class='container', id='domain-div')
                 form(id='domain-form', action='/shell', method='post')
                     label(for='client-select-box') Select a client to get started:
                     select(id='client-select-box', name='clientName', autofocus)
@@ -17,9 +17,9 @@ html
                             option(value=client) #{client}
                     div(id='lower')
                         input(id='go-button', type='submit', value='Go')
-                        input(id='other-button', type='button', onclick="goTo('/admin')", value='Admin')
+                        input(class='other-button', type='button', onclick="goTo('/admin')", value='Admin')
         else
-            div(id='login-container')
+            div(class='container', id='login-div')
                 form(id='login-form', action='/login', method='post')
                     label(for='username') Username:
                     input(type='text', name='username', id='username', autofocus)

@@ -73,16 +73,28 @@ const httpsServer = https.createServer(lex.httpsOptions, lex.middleware(app)).li
 const io = require('socket.io')(httpsServer);
 
 
-const clientNames = [];
+let clientNames = [];
 let clients = null;
-clientDb.getClients((err, clientList) => {
-  if (err) console.log('Could not get Client List.');
-  clients = clientList;
-  clientList.forEach((client) => {
-    clientNames.push(client.name);
+
+function updateClients(cb) {
+  clientNames = [];
+  clients = null;
+  clientDb.getClients((err, clientList) => {
+    if (err) cb(err);
+    clients = clientList;
+    if (!clientList) {
+      cb('Did not get client list from DB.');
+    }
+    clientList.forEach((client) => {
+      clientNames.push(client.name);
+    });
+    clientNames.sort();
+    cb(null);
   });
-  clientNames.sort();
-  console.log('Got client list from database');
+}
+updateClients((err) => {
+  if (err) throw new Error('Could not get client list from DB.');
+  console.log('Got client list from DB');
 });
 
 // Middleware
@@ -121,7 +133,18 @@ app.get('/admin',
     res.render('admin');
   });
 
-app.post('/admin',
+app.get('/add',
+  ensureLoggedIn('/'),
+  (req, res) => {
+    res.render('add');
+  });
+app.get('/remove',
+  ensureLoggedIn('/'),
+  (req, res) => {
+    res.render('remove', { clients: clientNames });
+  });
+
+app.post('/add',
   ensureLoggedIn('/'),
   (req, res) => {
     const newClientName = req.body.newClientName;
@@ -129,13 +152,34 @@ app.post('/admin',
     if (newClientName && newClientDomain) {
       clientDb.addClient(newClientName, newClientDomain, (err, result) => {
         if (err) {
-          return res.render('admin', { posted: true, ok: false, message: err });
+          return res.render('add', { posted: true, ok: false, message: err });
         }
-        return res.render('admin', { posted: true, ok: true, message: result });
+        return updateClients((updateErr) => {
+          if (updateErr) {
+            return res.render('add', { posted: true, ok: false, message: updateErr });
+          }
+          return res.render('add', { posted: true, ok: true, message: result });
+        });
       });
     } else {
       res.send('Did not get what we expected to get from the form.');
     }
+  });
+app.post('/remove',
+  ensureLoggedIn('/'),
+  (req, res) => {
+    const clientName = req.body.clientName;
+    clientDb.removeClient(clientName, (err, result) => {
+      if (err) {
+        return res.render('remove', { posted: true, ok: false, message: err });
+      }
+      return updateClients((updateErr) => {
+        if (updateErr) {
+          return res.render('remove', { posted: true, ok: false, message: updateErr });
+        }
+        return res.render('remove', { posted: true, ok: true, message: result });
+      });
+    });
   });
 
 io.on('connection', (socket) => {
