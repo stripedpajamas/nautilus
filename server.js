@@ -12,53 +12,43 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
 const favicon = require('serve-favicon');
-const clientDb = require('./lib/clientDb');
+const dbUtils = require('./lib/dbUtils');
+const mongoose = require('mongoose');
 const psSocket = require('./lib/ps');
 
 // *** passport stuff
 const passport = require('passport');
-const Strategy = require('passport-local').Strategy;
-const db = require('./db');
+const LocalStrategy = require('passport-local');
 
-passport.use(new Strategy((username, password, cb) => {
-  db.users.findByUsername(username, (err, user) => {
-    if (err) { return cb(err); }
-    if (!user) { return cb(null, false); }
-    if (user.password !== password) { return cb(null, false); }
-    return cb(null, user);
-  });
-}));
+const User = dbUtils.passportModel;
 
-passport.serializeUser((user, cb) => {
-  cb(null, user.id);
-});
+passport.use(new LocalStrategy(User.authenticate()));
 
-passport.deserializeUser((id, cb) => {
-  db.users.findById(id, (err, user) => {
-    if (err) {
-      return cb(err);
-    }
-    return cb(null, user);
-  });
-});
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 // *** end passport stuff
 
 const app = express();
 const PSDIR = process.env.PSDIR || path.resolve(__dirname, '../');
-const ADMIN = process.env.ADMIN || 'quovadis';
+const adminUser = process.env.adminUser; // the admin user used to connect to the O365 clients
 const publicDir = path.resolve(__dirname, 'public');
+mongoose.connect(process.env.mongoURI, (err) => {
+  if (err) {
+    console.log('Could not connect to MongoDB! Things are gonna fail!');
+  }
+});
 
 // *** certificate stuff
 const leStore = require('le-store-certbot');
 const leChallenge = require('le-challenge-fs');
 const redirectHttps = require('redirect-https');
 const lex = require('greenlock-express').create({
-  server: 'https://acme-v01.api.letsencrypt.org/directory',
-  email: 'peter@quo.cc',
+  server: 'https://acme-v01.api.letsencrypt.org/directory', // product url. use 'staging' for tests
+  email: process.env.certEmail, // need a registration email address for Let's Encrypt
   agreeTos: true,
   challenges: { 'http-01': leChallenge.create({ webrootPath: publicDir }) },
   store: leStore.create({ configDir: './letsencrypt/' }),
-  approveDomains: ['nautilus.quo.cc'],
+  approveDomains: [process.env.domainName],
 });
 
 http.createServer(
@@ -79,7 +69,7 @@ let clients = null;
 function updateClients(cb) {
   clientNames = [];
   clients = null;
-  clientDb.getClients((err, clientList) => {
+  dbUtils.getClients((err, clientList) => {
     if (err) cb(err);
     clients = clientList;
     if (!clientList) {
@@ -101,7 +91,7 @@ updateClients((err) => {
 app.use(favicon(path.resolve(publicDir, 'favicon.ico')));
 app.use(morgan('tiny'));
 app.use(cookieParser());
-app.use(session({ secret: 'twoseventythree tomato sauce', resave: false, saveUninitialized: false, secure: true }));
+app.use(session({ secret: process.env.sessionSecret || 'twoseventythree tomato sauce', resave: false, saveUninitialized: false, secure: true }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(publicDir));
 app.set('views', path.resolve(__dirname, 'views'));
@@ -150,7 +140,7 @@ app.post('/add',
     const newClientName = req.body.newClientName;
     const newClientDomain = req.body.newClientDomain;
     if (newClientName && newClientDomain) {
-      clientDb.addClient(newClientName, newClientDomain, (err, result) => {
+      dbUtils.addClient(newClientName, newClientDomain, (err, result) => {
         if (err) {
           return res.render('add', { posted: true, ok: false, message: err });
         }
@@ -169,7 +159,7 @@ app.post('/remove',
   ensureLoggedIn('/'),
   (req, res) => {
     const clientName = req.body.clientName;
-    clientDb.removeClient(clientName, (err, result) => {
+    dbUtils.removeClient(clientName, (err, result) => {
       if (err) {
         return res.render('remove', { posted: true, ok: false, message: err });
       }
@@ -183,6 +173,6 @@ app.post('/remove',
   });
 
 io.on('connection', (socket) => {
-  psSocket(socket, ADMIN, PSDIR);
+  psSocket(socket, adminUser, PSDIR);
 });
 
