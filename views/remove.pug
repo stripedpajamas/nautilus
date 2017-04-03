@@ -29,25 +29,25 @@ html
         div(class='container main')
             div(class="col-md-6 col-md-offset-3")
                 div(class="well")
-                    form(id='db-form', action='/add', method='post')
+                    form(id='db-form', action='/remove', method='post')
                         h4 Remove a client from Nautilus
                         div(class="form-group")
                             label(for='client-select-box') Select a company name to remove:
-                            select(class="form-control input-lg", id='client-select-box', name='clientName', autofocus)
+                            select(class="form-control input-lg", id='client-select-box', name='clientName', tabindex='1', autofocus)
                                 each client in clients
                                     option(value=client) #{client}
-                        a(role='button', type="button", class="btn btn-default btn-lg", href="/admin") Back
+                        a(role='button', type="button", class="btn btn-default btn-lg", href="/admin", tabindex='3') Back
                         span(class="pull-right")
-                            button(class="btn btn-danger btn-lg", type='submit') Remove Client
+                            button(class="btn btn-danger btn-lg", type='submit', tabindex='2') Remove Client
     else
         div(class='container main')
             div(class="col-md-6 col-md-offset-3")
                 div(class="well")
                     if ok
                         h4 Successfully removed client from database.
-                        a(href="/remove", class="btn btn-default btn-lg", type='button', role="button") Return
+                        a(href="/remove", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
                     else
                         h4 Failed to remove client from database.
                         div
                             code= message
-                        a(href="/remove", class="btn btn-default btn-lg", type='button', role="button") Return
+                        a(href="/remove", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return

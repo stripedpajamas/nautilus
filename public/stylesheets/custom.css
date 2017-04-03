@@ -1,0 +1,71 @@
+html {
+    position: relative;
+    min-height: 100%;
+}
+body {
+    /* Margin bottom by footer height */
+    margin-bottom: 80px;
+}
+
+.main {
+    padding-top: 150px;
+}
+
+.navbar {
+    min-height: 80px;
+}
+
+.navbar-brand {
+    background: url(../img/small-Nautilus-logo-white.png) center / contain no-repeat;
+    padding: 0 15px;
+    height: 80px;
+    width: 200px;
+    line-height: 80px;
+}
+
+.navbar-toggle {
+    /* (80px - button height 34px) / 2 = 23px */
+    margin-top: 23px;
+    padding: 9px 10px !important;
+}
+
+@media (min-width: 768px) {
+    .navbar-nav > li > a {
+        /* (80px - line-height of 27px) / 2 = 26.5px */
+        font-size: 18px;
+        padding-top: 26.5px;
+        padding-bottom: 26.5px;
+        line-height: 27px;
+    }
+}
+
+.lb-lg {
+    font-size: 20px;
+    width: auto;
+    color: #fff;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    /* Set the fixed height of the footer here */
+    height: 80px;
+    background-color: #222;
+}
+
+.command-output {
+    width: 95%;
+    margin: 0 auto;
+    padding-top: 100px;
+}
+.command-output-line {
+    max-width: 800px;
+    -webkit-margin-before: 0;
+    -webkit-margin-after: 0;
+    font-family: monospace;
+    font-size: 14px;
+}
+.self {
+    font-weight: bold;
+}
