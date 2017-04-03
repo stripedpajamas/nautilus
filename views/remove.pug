@@ -1,41 +1,53 @@
 html
     head
         title= 'Nautilus'
-        link(rel='stylesheet', href='stylesheets/index.css')
-        script(src='scripts/helpers.js')
-body
-    div(class='title-bar')
-        div(class='title-bar-text')
-            h2
-                a(href='/') Nautilus
+        script(src="https://code.jquery.com/jquery-3.2.1.min.js", integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=", crossorigin="anonymous")
+        link(rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css", integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u", crossorigin="anonymous")
+        script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js", integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa", crossorigin="anonymous")
+        link(rel='stylesheet', href='stylesheets/custom.css')
+        meta(name="viewport", content="width=device-width, initial-scale=1")
+    body
+        nav(class="navbar navbar-default navbar-fixed-top navbar-inverse")
+            div(class="container-fluid")
+                div(class="navbar-header")
+                    button(type="button", class="navbar-toggle collapsed",
+                    data-toggle="collapse", data-target="#nautilus-navbar-collapse",
+                    aria-expanded="false")
+                        span(class="sr-only") Toggle navigation
+                        span(class="icon-bar")
+                        span(class="icon-bar")
+                        span(class="icon-bar")
+                    a(class="navbar-brand", href='/')
+                div(class="collapse navbar-collapse" id="nautilus-navbar-collapse")
+                    ul(class="nav navbar-nav")
+                        li
+                            a(href="/") Shell
+                        li(class="active")
+                            a(href="/admin") Admin
+                            span(class="sr-only") (current)
     if !posted
-        div(class='container', id='db-div')
-            form(id='db-form', action='/remove', method='post')
-                p
-                    b Remove a client to Nautilus
-                br
-                label(for='client-select-box') Select a company name to remove:
-                    select(id='client-select-box', name='clientName', autofocus)
-                        each client in clients
-                            option(value=client) #{client}
-                    div(id='lower')
-                        input(id='go-button', type='submit', value='Nuke It')
-                        input(class='other-button', type='button', onclick="goTo('../')", value='Home')
+        div(class='container main')
+            div(class="col-md-6 col-md-offset-3")
+                div(class="well")
+                    form(id='db-form', action='/add', method='post')
+                        h4 Remove a client from Nautilus
+                        div(class="form-group")
+                            label(for='client-select-box') Select a company name to remove:
+                            select(class="form-control input-lg", id='client-select-box', name='clientName', autofocus)
+                                each client in clients
+                                    option(value=client) #{client}
+                        a(role='button', type="button", class="btn btn-default btn-lg", href="/admin") Back
+                        span(class="pull-right")
+                            button(class="btn btn-danger btn-lg", type='submit') Remove Client
     else
-        div(class='container', id='db-div')
-            if ok
-                form(id='db-form', action='/remove', method='get')
-                    b
-                        p Successfully removed client from database.
-                        br
-                    div(id='lower')
-                        input(id='go-button', type='submit', value='Return')
-            else
-                form(id='db-form', action='/admin', method='get')
-                    b
-                        p Failed to remove client from database.
-                        br
+        div(class='container main')
+            div(class="col-md-6 col-md-offset-3")
+                div(class="well")
+                    if ok
+                        h4 Successfully removed client from database.
+                        a(href="/remove", class="btn btn-default btn-lg", type='button', role="button") Return
+                    else
+                        h4 Failed to remove client from database.
                         div
-                            p= message
-                    div(id='lower')
-                        input(id='go-button', type='submit', value='Return')
+                            code= message
+                        a(href="/remove", class="btn btn-default btn-lg", type='button', role="button") Return
