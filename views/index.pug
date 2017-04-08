@@ -23,8 +23,13 @@ html
                         li(class="active")
                             a(href="/") Shell
                             span(class="sr-only") (current)
-                        li
-                            a(href="/admin") Admin
+                        if user && user.isAdmin
+                            li
+                                a(href="/admin") Admin
+                    if user
+                        ul(class="nav navbar-nav navbar-right")
+                            li
+                                a(href="/users/logout") Logout
         if user
             div(class='container main')
                 div(class="col-md-6 col-md-offset-3")

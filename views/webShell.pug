@@ -24,8 +24,9 @@ html
                         li(class="active")
                             a(href="/") Shell
                             span(class="sr-only") (current)
-                        li
-                            a(href="/admin") Admin
+                        if user.isAdmin
+                            li
+                                a(href="/admin") Admin
                     ul(class="nav navbar-nav navbar-right")
                         li
                             a(href="#", onclick='cleanExit();')= 'End Session: ' + clientDomain

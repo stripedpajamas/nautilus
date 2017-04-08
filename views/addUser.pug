@@ -1,0 +1,108 @@
+html
+    head
+        title= 'Nautilus'
+        script(src="https://code.jquery.com/jquery-3.2.1.min.js", integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=", crossorigin="anonymous")
+        link(rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css", integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u", crossorigin="anonymous")
+        script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js", integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa", crossorigin="anonymous")
+        link(rel='stylesheet', href='/stylesheets/custom.css')
+        link(rel='stylesheet', href='/stylesheets/toggles.css')
+        link(rel='stylesheet', href='/stylesheets/themes/toggles-modern.css')
+        script(src='/scripts/toggles.min.js')
+        meta(name="viewport", content="width=device-width, initial-scale=1")
+    body
+        nav(class="navbar navbar-default navbar-fixed-top navbar-inverse")
+            div(class="container-fluid")
+                div(class="navbar-header")
+                    button(type="button", class="navbar-toggle collapsed",
+                    data-toggle="collapse", data-target="#nautilus-navbar-collapse",
+                    aria-expanded="false")
+                        span(class="sr-only") Toggle navigation
+                        span(class="icon-bar")
+                        span(class="icon-bar")
+                        span(class="icon-bar")
+                    a(class="navbar-brand", href='/')
+                div(class="collapse navbar-collapse" id="nautilus-navbar-collapse")
+                    ul(class="nav navbar-nav")
+                        li
+                            a(href="/") Shell
+                        li(class="active")
+                            a(href="/admin") Admin
+                            span(class="sr-only") (current)
+                    if user
+                        ul(class="nav navbar-nav navbar-right")
+                            li
+                                a(href="/users/logout") Logout
+        if !posted
+            div(class='container main')
+                div(class="col-md-6 col-md-offset-3")
+                    div(class="well")
+                        form(id='db-form', action='/users/add', method='post')
+                            h4 Add a new user to Nautilus
+                            div(class="form-group")
+                                label(for='newUsername') Username:
+                                input(class="form-control input-lg", type='text', name='newUsername', id='newUsername', tabindex='1', autofocus)
+                            div(class="form-group" id='newPwdDiv')
+                                label(for='newPassword') Password (at least 10 characters):
+                                input(class="form-control input-lg", type='password', name='newPassword', id='newPassword', tabindex='2')
+                            div(class="form-group" id='confirmPwdDiv')
+                                label(for='confirmPassword') Password:
+                                input(class="form-control input-lg", type='password', name='confirmPassword', id='confirmPassword', tabindex='3')
+                            div(class="form-group")
+                                label(for='isAdmin') Admin User?
+                                div(id='isAdminDiv', class='toggle toggle-modern')
+                                input(type='checkbox', class='fake-checkbox', id='isAdmin', name='isAdmin')
+                            a(role='button', type="button", class="btn btn-default btn-lg", href="/admin", tabindex='6') Back
+                            span(class="pull-right")
+                                button(class="disabled btn btn-primary btn-lg", type='submit', tabindex='5' id='addUserBtn') Add User
+        else
+            div(class='container main')
+                div(class="col-md-6 col-md-offset-3")
+                    div(class="well")
+                        if ok
+                            h4 Successfully added new user to database.
+                            a(href="/users/add", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
+                        else
+                            h4 Failed to add new user to database.
+                            div
+                                code= message
+                            a(href="/users/add", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
+        script.
+            function checkPasswordMatch() {
+              var password = $("#newPassword").val();
+              var confirmPassword = $("#confirmPassword").val();
+              if (password.length < 10) {
+                $("#newPwdDiv").removeClass('has-success').addClass('has-error');
+                $("#addUserBtn").addClass('disabled');
+                return false;
+              } else {
+                $("#newPwdDiv").removeClass('has-error').addClass('has-success');
+                  if (password !== confirmPassword) {
+                    $("#confirmPwdDiv").removeClass('has-success').addClass('has-error');
+                    $("#addUserBtn").addClass('disabled');
+                    return false;
+                  } else {
+                    $("#confirmPwdDiv").removeClass('has-error').addClass('has-success');
+                    $("#addUserBtn").removeClass('disabled');
+                    return true;
+                  }
+              }
+            }
+            $("#db-form").submit(function(event) {
+              if (checkPasswordMatch()) {
+                return
+              }
+              event.preventDefault();
+            });
+            $('.toggle').toggles({
+            drag: false,
+            text: {
+              on: "YES",
+              off: "NO"
+            },
+            checkbox: $('#isAdmin'),
+            width: 90,
+            height: 30
+            });
+            $(document).ready(function () {
+            $("#newPassword, #confirmPassword").keyup(checkPasswordMatch);
+            });

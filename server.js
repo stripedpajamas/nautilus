@@ -6,7 +6,6 @@ const express = require('express');
 const http = require('http');
 const https = require('https');
 const bodyParser = require('body-parser');
-const morgan = require('morgan');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
@@ -51,14 +50,8 @@ const lex = require('greenlock-express').create({
   approveDomains: [process.env.domainName],
 });
 
-http.createServer(
-  lex.middleware(
-    redirectHttps())).listen(80, () => {
-      console.log('Listening for ACME http-01 challenges');
-    });
-const httpsServer = https.createServer(lex.httpsOptions, lex.middleware(app)).listen(443, () => {
-  console.log('Listening for ACME tls-sni-01 challenges and serving secure Nautilus app');
-});
+http.createServer(lex.middleware(redirectHttps())).listen(80);
+const httpsServer = https.createServer(lex.httpsOptions, lex.middleware(app)).listen(443);
 // *** end certificate stuff
 const io = require('socket.io')(httpsServer);
 
@@ -89,7 +82,6 @@ updateClients((err) => {
 
 // Middleware
 app.use(favicon(path.resolve(publicDir, 'favicon.ico')));
-app.use(morgan('tiny'));
 app.use(cookieParser());
 app.use(session({ secret: process.env.sessionSecret || 'twoseventythree tomato sauce', resave: false, saveUninitialized: false, secure: true }));
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -100,6 +92,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.post('/login', passport.authenticate('local', { failureRedirect: '/', successRedirect: '/' }));
+app.get('/users/logout', (req, res) => {
+  req.logout();
+  res.redirect('/');
+});
 
 app.get('/', (req, res) => {
   res.render('index', { clients: clientNames, user: req.user });
@@ -114,62 +110,158 @@ app.post('/shell',
   (req, res) => {
     const clientName = req.body.clientName;
     const clientRec = clients.find(client => clientName === client.name);
-    res.render('webShell', { clientDomain: clientRec.domain });
+    res.render('webShell', { clientDomain: clientRec.domain, user: req.user });
   });
 
 app.get('/admin',
   ensureLoggedIn('/'),
   (req, res) => {
-    res.render('admin');
+    if (!req.user.isAdmin) {
+      res.redirect('/');
+    } else {
+      res.render('admin', { user: req.user });
+    }
   });
 
-app.get('/add',
+app.get('/clients/add',
   ensureLoggedIn('/'),
   (req, res) => {
-    res.render('add');
+    if (!req.user.isAdmin) {
+      res.redirect('/');
+    } else {
+      res.render('addClient', { user: req.user });
+    }
   });
-app.get('/remove',
+app.get('/users/add',
   ensureLoggedIn('/'),
   (req, res) => {
-    res.render('remove', { clients: clientNames });
+    if (!req.user.isAdmin) {
+      res.redirect('/');
+    } else {
+      res.render('addUser', {user: req.user});
+    }
   });
-
-app.post('/add',
+app.get('/users/remove',
   ensureLoggedIn('/'),
   (req, res) => {
-    const newClientName = req.body.newClientName;
-    const newClientDomain = req.body.newClientDomain;
-    if (newClientName && newClientDomain) {
-      dbUtils.addClient(newClientName, newClientDomain, (err, result) => {
+    if (!req.user.isAdmin) {
+      res.redirect('/');
+    } else {
+      dbUtils.getUsers((err, users) => {
         if (err) {
-          return res.render('add', { posted: true, ok: false, message: err });
+          res.send('Error getting users list :(');
+        }
+        const displayUsers = users.map(el => el.username).filter(u => u !== req.user.username);
+        res.render('removeUser', {user: req.user, users: displayUsers});
+      });
+    }
+  });
+app.get('/clients/remove',
+  ensureLoggedIn('/'),
+  (req, res) => {
+    if (!req.user.isAdmin) {
+      res.redirect('/');
+    } else {
+      res.render('removeClient', {clients: clientNames, user: req.user});
+    }
+  });
+
+app.post('/users/add',
+  ensureLoggedIn('/'),
+  (req, res) => {
+    if (!req.user.isAdmin) {
+      res.redirect('/');
+    } else {
+      const newUsername = req.body.newUsername;
+      const newPassword = req.body.newPassword;
+      const isAdmin = (req.body.isAdmin && req.body.isAdmin === 'on');
+      if (newUsername && newPassword) {
+        User.register(new User({username: newUsername, isAdmin}), newPassword, (err) => {
+          if (err) {
+            return res.render('addUser', {user: req.user, posted: true, ok: false, message: err});
+          }
+          return res.render('addUser', {user: req.user, posted: true, ok: true});
+        });
+      } else {
+        res.send('Did not get what we expected to get from the form.');
+      }
+    }
+  });
+app.post('/users/remove',
+  ensureLoggedIn('/'),
+  (req, res) => {
+    if (!req.user.isAdmin) {
+      res.redirect('/');
+    } else {
+      const usernameRemove = req.body.usernameRemove;
+      dbUtils.removeUser(usernameRemove, (err) => {
+        if (err) {
+          return res.render('removeUser', {user: req.user, posted: true, ok: false, message: err});
+        }
+        return res.render('removeUser', {user: req.user, posted: true, ok: true});
+      });
+    }
+  });
+
+app.post('/clients/add',
+  ensureLoggedIn('/'),
+  (req, res) => {
+    if (!req.user.isAdmin) {
+      res.redirect('/');
+    } else {
+      const newClientName = req.body.newClientName;
+      const newClientDomain = req.body.newClientDomain;
+      if (newClientName && newClientDomain) {
+        dbUtils.addClient(newClientName, newClientDomain, (err) => {
+          if (err) {
+            return res.render('addClient', {user: req.user, posted: true, ok: false, message: err});
+          }
+          return updateClients((updateErr) => {
+            if (updateErr) {
+              return res.render('addClient', {
+                user: req.user,
+                posted: true,
+                ok: false,
+                message: updateErr
+              });
+            }
+            return res.render('addClient', {user: req.user, posted: true, ok: true});
+          });
+        });
+      } else {
+        res.send('Did not get what we expected to get from the form.');
+      }
+    }
+  });
+app.post('/clients/remove',
+  ensureLoggedIn('/'),
+  (req, res) => {
+    if (!req.user.isAdmin) {
+      res.redirect('/');
+    } else {
+      const clientName = req.body.clientName;
+      dbUtils.removeClient(clientName, (err) => {
+        if (err) {
+          return res.render('removeClient', {
+            user: req.user,
+            posted: true,
+            ok: false,
+            message: err
+          });
         }
         return updateClients((updateErr) => {
           if (updateErr) {
-            return res.render('add', { posted: true, ok: false, message: updateErr });
+            return res.render('removeClient', {
+              user: req.user,
+              posted: true,
+              ok: false,
+              message: updateErr
+            });
           }
-          return res.render('add', { posted: true, ok: true, message: result });
+          return res.render('removeClient', {user: req.user, posted: true, ok: true});
         });
       });
-    } else {
-      res.send('Did not get what we expected to get from the form.');
     }
-  });
-app.post('/remove',
-  ensureLoggedIn('/'),
-  (req, res) => {
-    const clientName = req.body.clientName;
-    dbUtils.removeClient(clientName, (err, result) => {
-      if (err) {
-        return res.render('remove', { posted: true, ok: false, message: err });
-      }
-      return updateClients((updateErr) => {
-        if (updateErr) {
-          return res.render('remove', { posted: true, ok: false, message: updateErr });
-        }
-        return res.render('remove', { posted: true, ok: true, message: result });
-      });
-    });
   });
 
 io.on('connection', (socket) => {

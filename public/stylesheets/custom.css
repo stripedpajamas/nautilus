@@ -69,3 +69,7 @@ body {
 .self {
     font-weight: bold;
 }
+
+.fake-checkbox {
+    display: none;
+}
