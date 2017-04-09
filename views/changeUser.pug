@@ -1,0 +1,103 @@
+html
+    head
+        title= 'Nautilus'
+        script(src="https://code.jquery.com/jquery-3.2.1.min.js", integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=", crossorigin="anonymous")
+        link(rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css", integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u", crossorigin="anonymous")
+        script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js", integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa", crossorigin="anonymous")
+        link(rel='stylesheet', href='/stylesheets/custom.css')
+        meta(name="viewport", content="width=device-width, initial-scale=1")
+    body
+        nav(class="navbar navbar-default navbar-fixed-top navbar-inverse")
+            div(class="container-fluid")
+                div(class="navbar-header")
+                    button(type="button", class="navbar-toggle collapsed",
+                    data-toggle="collapse", data-target="#nautilus-navbar-collapse",
+                    aria-expanded="false")
+                        span(class="sr-only") Toggle navigation
+                        span(class="icon-bar")
+                        span(class="icon-bar")
+                        span(class="icon-bar")
+                    a(class="navbar-brand", href='/')
+                div(class="collapse navbar-collapse" id="nautilus-navbar-collapse")
+                    ul(class="nav navbar-nav")
+                        li
+                            a(href="/") Shell
+                        if user && user.isAdmin
+                            li
+                                a(href="/admin") Admin
+                    if user
+                        ul(class="nav navbar-nav navbar-right")
+                            li(class="dropdown")
+                                a(href="#" class="dropdown-toggle" data-toggle="dropdown" role="button")= 'Logged in: ' + user.username
+                                span(class="caret")
+                                ul(class="dropdown-menu")
+                                    li
+                                        a(href="/users/change") Change Password
+                                    li(role="separator" class="divider")
+                                    li
+                                        a(href="/users/logout") Logout
+        if !posted
+            div(class='container main')
+                div(class="col-md-6 col-md-offset-3")
+                    div(class="well")
+                        form(id='db-form', action='/users/change', method='post')
+                            h4 Change your password
+                            div(class="form-group" id='newPwdDiv')
+                                label(for='newPassword') New Password (at least 10 characters):
+                                input(class="form-control input-lg", type='password', name='newPassword', id='newPassword', tabindex='1', autofocus)
+                            div(class="form-group" id='confirmPwdDiv')
+                                label(for='confirmPassword') Confirm Password:
+                                input(class="form-control input-lg", type='password', name='confirmPassword', id='confirmPassword', tabindex='2')
+                            div(class="form-group" id='OldPwdDiv')
+                                label(for='oldPassword') Current Password:
+                                input(class="form-control input-lg", type='password', name='oldPassword', id='oldPassword', tabindex='3')
+                            a(role='button', type="button", class="btn btn-default btn-lg", href="/", tabindex='5') Back
+                            span(class="pull-right")
+                                button(class="disabled btn btn-primary btn-lg", type='submit', tabindex='4' id='changePasswordBtn') Change Password
+        else
+            div(class='container main')
+                div(class="col-md-6 col-md-offset-3")
+                    div(class="well")
+                        if ok
+                            h4 Password changed successfully.
+                            a(href="/users/change", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
+                        else
+                            h4 Password change failed.
+                            div
+                                code= message
+                            a(href="/users/change", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
+        script.
+          function checkPasswordMatch() {
+            var password = $("#newPassword").val();
+            var confirmPassword = $("#confirmPassword").val();
+            var oldPassword = $("#oldPassword").val();
+            if (password.length < 10) {
+              $("#newPwdDiv").removeClass('has-success').addClass('has-error');
+              $("#changePasswordBtn").addClass('disabled');
+              return false;
+            } else {
+              $("#newPwdDiv").removeClass('has-error').addClass('has-success');
+              if (password !== confirmPassword) {
+                $("#confirmPwdDiv").removeClass('has-success').addClass('has-error');
+                $("#changePasswordBtn").addClass('disabled');
+                return false;
+              } else {
+                $("#confirmPwdDiv").removeClass('has-error').addClass('has-success');
+                if (!oldPassword.length) {
+                  $("#changePasswordBtn").addClass('disabled');
+                  return false;
+                }
+                $("#changePasswordBtn").removeClass('disabled');
+                return true;
+              }
+            }
+          }
+          $("#db-form").submit(function(event) {
+            if (checkPasswordMatch()) {
+              return
+            }
+            event.preventDefault();
+          });
+          $(document).ready(function () {
+            $("#newPassword, #confirmPassword, #oldPassword").keyup(checkPasswordMatch);
+          });

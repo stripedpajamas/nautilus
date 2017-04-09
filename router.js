@@ -155,4 +155,45 @@ router.route('/clients/remove')
     });
   });
 
+router.route('/users/change')
+  .all(ensureLoggedIn('/'))
+  .get((req, res) => {
+    res.render('changeUser', { user: req.user });
+  })
+  .post((req, res) => {
+    const newPassword = req.body.newPassword;
+    const oldPassword = req.body.oldPassword;
+    req.user.authenticate(oldPassword, (err, authedUser, passwordError) => {
+      if (err || passwordError) {
+        return res.render('changeUser', {
+          user: req.user,
+          posted: true,
+          ok: false,
+          message: err || passwordError,
+        });
+      }
+      return authedUser.setPassword(newPassword, (setErr, changedUser, passwordError2) => {
+        if (setErr || passwordError2) {
+          return res.render('changeUser', {
+            user: req.user,
+            posted: true,
+            ok: false,
+            message: setErr || passwordError2,
+          });
+        }
+        return changedUser.save((saveErr) => {
+          if (saveErr) {
+            return res.render('changeUser', {
+              user: req.user,
+              posted: true,
+              ok: false,
+              message: saveErr,
+            });
+          }
+          return res.render('changeUser', { user: req.user, posted: true, ok: true });
+        });
+      });
+    });
+  });
+
 module.exports = router;

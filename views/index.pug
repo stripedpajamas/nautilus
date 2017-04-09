@@ -28,8 +28,15 @@ html
                                 a(href="/admin") Admin
                     if user
                         ul(class="nav navbar-nav navbar-right")
-                            li
-                                a(href="/users/logout") Logout
+                            li(class="dropdown")
+                                a(href="#" class="dropdown-toggle" data-toggle="dropdown" role="button")= 'Logged in: ' + user.username
+                                    span(class="caret")
+                                ul(class="dropdown-menu")
+                                    li
+                                        a(href="/users/change") Change Password
+                                    li(role="separator" class="divider")
+                                    li
+                                        a(href="/users/logout") Logout
         if user
             div(class='container main')
                 div(class="col-md-6 col-md-offset-3")
