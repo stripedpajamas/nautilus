@@ -24,6 +24,16 @@ function checkAdmin(req, res, next) {
   }
   return next();
 }
+function handleErrors(res, endpoint, user, selected, posted, ok, message, finished) {
+  return res.render(endpoint, {
+    user,
+    selected,
+    posted,
+    ok,
+    message,
+    finished,
+  });
+}
 
 router.post('/login', passport.authenticate('local', { failureRedirect: '/', successRedirect: '/' }));
 router.get('/logout', (req, res) => {
@@ -165,30 +175,15 @@ router.route('/changePassword')
     const oldPassword = req.body.oldPassword;
     req.user.authenticate(oldPassword, (err, authedUser, passwordError) => {
       if (err || passwordError) {
-        return res.render('changePassword', {
-          user: req.user,
-          posted: true,
-          ok: false,
-          message: err || passwordError,
-        });
+        return handleErrors(res, 'changePassword', req.user, false, true, false, err || passwordError);
       }
       return authedUser.setPassword(newPassword, (setErr, changedUser, passwordError2) => {
         if (setErr || passwordError2) {
-          return res.render('changePassword', {
-            user: req.user,
-            posted: true,
-            ok: false,
-            message: setErr || passwordError2,
-          });
+          return handleErrors(res, 'changePassword', req.user, false, true, false, setErr || passwordError2);
         }
         return changedUser.save((saveErr) => {
           if (saveErr) {
-            return res.render('changePassword', {
-              user: req.user,
-              posted: true,
-              ok: false,
-              message: saveErr,
-            });
+            return handleErrors(res, 'changePassword', req.user, false, true, false, saveErr);
           }
           return res.render('changePassword', { user: req.user, posted: true, ok: true });
         });
@@ -204,43 +199,129 @@ router.route('/admin/users/change')
         res.send('Error getting users list :(');
       }
       const displayUsers = users.map(el => el.username).filter(u => u !== req.user.username);
-      res.render('adminChangeUser', { user: req.user, users: displayUsers });
+      res.render('changeUser', { user: req.user, users: displayUsers });
     });
   })
   .post((req, res) => {
-    const userToChange = req.body.usernamePwdChange;
-    const newPassword = req.body.newPassword;
-    User.findByUsername(userToChange, (findErr, user) => {
-      if (findErr) {
-        return res.render('adminChangeUser', {
-          user: req.user,
-          posted: true,
-          ok: false,
-          message: findErr,
-        });
-      }
-      return user.setPassword(newPassword, (err, changedUser, passwordError) => {
-        if (err || passwordError) {
-          return res.render('adminChangeUser', {
-            user: req.user,
-            posted: true,
-            ok: false,
-            message: err || passwordError,
-          });
+    if (req.body.userToChange) {
+      User.findByUsername(req.body.userToChange, (findErr, user) => {
+        if (findErr) {
+          return handleErrors(res, 'changeUser', req.user, true, true, false, findErr, true);
         }
-        return changedUser.save((saveErr) => {
-          if (saveErr) {
-            return res.render('adminChangeUser', {
-              user: req.user,
-              posted: true,
-              ok: false,
-              message: saveErr,
-            });
-          }
-          return res.render('adminChangeUser', { user: req.user, posted: true, ok: true });
+        return res.render('changeUser', {
+          user: req.user,
+          selected: true,
+          posted: false,
+          changeUser: user,
         });
       });
-    });
+    } else {
+      const userToChange = req.body.changeUser;
+      const newPassword = req.body.newPassword;
+      const isAdminSetting = (req.body.isAdmin === 'on');
+      User.findByUsername(userToChange, (findErr, user) => {
+        if (findErr) {
+          return handleErrors(res, 'changeUser', req.user, true, true, false, findErr, true);
+        }
+        const userToBeChanged = user;
+        if (user.isAdmin !== isAdminSetting) {
+          userToBeChanged.isAdmin = isAdminSetting;
+        }
+        if (!newPassword.length) {
+          return userToBeChanged.save((saveErr) => {
+            if (saveErr) {
+              return handleErrors(res, 'changeUser', req.user, true, true, false, saveErr, true);
+            }
+            return res.render('changeUser', {
+              user: req.user,
+              selected: true,
+              posted: true,
+              finished: true,
+              ok: true });
+          });
+        }
+        return userToBeChanged.setPassword(newPassword, (err, changedUser, passwordError) => {
+          if (err || passwordError) {
+            return handleErrors(res, 'changeUser', req.user, true, true, false, err || passwordError, true);
+          }
+          return changedUser.save((saveErr) => {
+            if (saveErr) {
+              return handleErrors(res, 'changeUser', req.user, true, true, false, saveErr, true);
+            }
+            return res.render('changeUser', {
+              user: req.user,
+              selected: true,
+              posted: true,
+              finished: true,
+              ok: true });
+          });
+        });
+      });
+    }
+  });
+
+router.route('/admin/clients/change')
+  .all(ensureLoggedIn('/'), checkAdmin)
+  .get((req, res) => {
+    res.render('changeClient', { clients: clientNames, user: req.user });
+  })
+  .post((req, res) => {
+    if (req.body.clientToChange) {
+      dbUtils.clientModel.findOne({ name: req.body.clientToChange }, (findErr, client) => {
+        if (findErr) {
+          return handleErrors(res, 'changeClient', req.user, true, true, false, findErr, true);
+        }
+        return res.render('changeClient', {
+          user: req.user,
+          selected: true,
+          posted: false,
+          changeClient: client,
+        });
+      });
+    } else {
+      const clientToChangeID = req.body.changeClient;
+      const newName = req.body.newClientName;
+      const newDomain = req.body.newClientDomain;
+      dbUtils.findClientById(clientToChangeID, (findErr, client) => {
+        if (findErr) {
+          return handleErrors(res, 'changeClient', req.user, true, true, false, findErr, true);
+        }
+        const clientToBeChanged = client;
+        let changed = false;
+        if (client.name !== newName) {
+          clientToBeChanged.name = newName;
+          changed = true;
+        }
+        if (client.domain !== newDomain) {
+          clientToBeChanged.domain = newDomain;
+          changed = true;
+        }
+        if (changed) {
+          return client.save((saveErr) => {
+            if (saveErr) {
+              return handleErrors(res, 'changeClient', req.user, true, true, false, saveErr, true);
+            }
+            return dbUtils.updateClients((updateErr) => {
+              if (updateErr) {
+                handleErrors(res, 'changeClient', req.user, true, true, false, updateErr, true);
+              }
+              return res.render('changeClient', {
+                user: req.user,
+                selected: true,
+                posted: true,
+                finished: true,
+                ok: true });
+            });
+          });
+        }
+        return res.render('changeClient', {
+          user: req.user,
+          selected: true,
+          posted: true,
+          finished: true,
+          ok: true });
+      });
+    }
   });
 
 module.exports = router;
