@@ -76,7 +76,7 @@ router.route('/admin/clients/add')
         if (err) {
           return res.render('addClient', { user: req.user, posted: true, ok: false, message: err });
         }
-        return dbUtils.updateClients((updateErr) => {
+        return dbUtils.updateClients((updateErr, clientList, names) => {
           if (updateErr) {
             return res.render('addClient', {
               user: req.user,
@@ -85,6 +85,8 @@ router.route('/admin/clients/add')
               message: updateErr,
             });
           }
+          clients = clientList;
+          clientNames = names;
           return res.render('addClient', { user: req.user, posted: true, ok: true });
         });
       });
@@ -151,7 +153,7 @@ router.route('/admin/clients/remove')
           message: err,
         });
       }
-      return dbUtils.updateClients((updateErr) => {
+      return dbUtils.updateClients((updateErr, clientList, names) => {
         if (updateErr) {
           return res.render('removeClient', {
             user: req.user,
@@ -160,6 +162,8 @@ router.route('/admin/clients/remove')
             message: updateErr,
           });
         }
+        clients = clientList;
+        clientNames = names;
         return res.render('removeClient', { user: req.user, posted: true, ok: true });
       });
     });
@@ -301,10 +305,12 @@ router.route('/admin/clients/change')
             if (saveErr) {
               return handleErrors(res, 'changeClient', req.user, true, true, false, saveErr, true);
             }
-            return dbUtils.updateClients((updateErr) => {
+            return dbUtils.updateClients((updateErr, clientList, names) => {
               if (updateErr) {
                 handleErrors(res, 'changeClient', req.user, true, true, false, updateErr, true);
               }
+              clients = clientList;
+              clientNames = names;
               return res.render('changeClient', {
                 user: req.user,
                 selected: true,
