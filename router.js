@@ -26,7 +26,7 @@ function checkAdmin(req, res, next) {
 }
 
 router.post('/login', passport.authenticate('local', { failureRedirect: '/', successRedirect: '/' }));
-router.get('/users/logout', (req, res) => {
+router.get('/logout', (req, res) => {
   req.logout();
   res.redirect('/');
 });
@@ -53,7 +53,7 @@ router.get('/admin',
     res.render('admin', { user: req.user });
   });
 
-router.route('/clients/add')
+router.route('/admin/clients/add')
   .all(ensureLoggedIn('/'), checkAdmin)
   .get((req, res) => {
     res.render('addClient', { user: req.user });
@@ -83,7 +83,7 @@ router.route('/clients/add')
     }
   });
 
-router.route('/users/add')
+router.route('/admin/users/add')
   .all(ensureLoggedIn('/'), checkAdmin)
   .get((req, res) => {
     res.render('addUser', { user: req.user });
@@ -104,7 +104,7 @@ router.route('/users/add')
     }
   });
 
-router.route('/users/remove')
+router.route('/admin/users/remove')
   .all(ensureLoggedIn('/'), checkAdmin)
   .get((req, res) => {
     dbUtils.getUsers((err, users) => {
@@ -125,7 +125,7 @@ router.route('/users/remove')
     });
   });
 
-router.route('/clients/remove')
+router.route('/admin/clients/remove')
   .all(ensureLoggedIn('/'), checkAdmin)
   .get((req, res) => {
     res.render('removeClient', { clients: clientNames, user: req.user });
@@ -155,17 +155,17 @@ router.route('/clients/remove')
     });
   });
 
-router.route('/users/change')
+router.route('/changePassword')
   .all(ensureLoggedIn('/'))
   .get((req, res) => {
-    res.render('changeUser', { user: req.user });
+    res.render('changePassword', { user: req.user });
   })
   .post((req, res) => {
     const newPassword = req.body.newPassword;
     const oldPassword = req.body.oldPassword;
     req.user.authenticate(oldPassword, (err, authedUser, passwordError) => {
       if (err || passwordError) {
-        return res.render('changeUser', {
+        return res.render('changePassword', {
           user: req.user,
           posted: true,
           ok: false,
@@ -174,7 +174,7 @@ router.route('/users/change')
       }
       return authedUser.setPassword(newPassword, (setErr, changedUser, passwordError2) => {
         if (setErr || passwordError2) {
-          return res.render('changeUser', {
+          return res.render('changePassword', {
             user: req.user,
             posted: true,
             ok: false,
@@ -183,14 +183,61 @@ router.route('/users/change')
         }
         return changedUser.save((saveErr) => {
           if (saveErr) {
-            return res.render('changeUser', {
+            return res.render('changePassword', {
               user: req.user,
               posted: true,
               ok: false,
               message: saveErr,
             });
           }
-          return res.render('changeUser', { user: req.user, posted: true, ok: true });
+          return res.render('changePassword', { user: req.user, posted: true, ok: true });
+        });
+      });
+    });
+  });
+
+router.route('/admin/users/change')
+  .all(ensureLoggedIn('/'), checkAdmin)
+  .get((req, res) => {
+    dbUtils.getUsers((err, users) => {
+      if (err) {
+        res.send('Error getting users list :(');
+      }
+      const displayUsers = users.map(el => el.username).filter(u => u !== req.user.username);
+      res.render('adminChangeUser', { user: req.user, users: displayUsers });
+    });
+  })
+  .post((req, res) => {
+    const userToChange = req.body.usernamePwdChange;
+    const newPassword = req.body.newPassword;
+    User.findByUsername(userToChange, (findErr, user) => {
+      if (findErr) {
+        return res.render('adminChangeUser', {
+          user: req.user,
+          posted: true,
+          ok: false,
+          message: findErr,
+        });
+      }
+      return user.setPassword(newPassword, (err, changedUser, passwordError) => {
+        if (err || passwordError) {
+          return res.render('adminChangeUser', {
+            user: req.user,
+            posted: true,
+            ok: false,
+            message: err || passwordError,
+          });
+        }
+        return changedUser.save((saveErr) => {
+          if (saveErr) {
+            return res.render('adminChangeUser', {
+              user: req.user,
+              posted: true,
+              ok: false,
+              message: saveErr,
+            });
+          }
+          return res.render('adminChangeUser', { user: req.user, posted: true, ok: true });
         });
       });
     });

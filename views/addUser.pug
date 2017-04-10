@@ -35,15 +35,15 @@ html
                                 span(class="caret")
                                 ul(class="dropdown-menu")
                                     li
-                                        a(href="/users/change") Change Password
+                                        a(href="/changePassword") Change Password
                                     li(role="separator" class="divider")
                                     li
-                                        a(href="/users/logout") Logout
+                                        a(href="/logout") Logout
         if !posted
             div(class='container main')
                 div(class="col-md-6 col-md-offset-3")
                     div(class="well")
-                        form(id='db-form', action='/users/add', method='post')
+                        form(id='db-form', action='/admin/users/add', method='post')
                             h4 Add a new user to Nautilus
                             div(class="form-group")
                                 label(for='newUsername') Username:
@@ -67,12 +67,12 @@ html
                     div(class="well")
                         if ok
                             h4 Successfully added new user to database.
-                            a(href="/users/add", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
+                            a(href="/admin/users/add", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
                         else
                             h4 Failed to add new user to database.
                             div
                                 code= message
-                            a(href="/users/add", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
+                            a(href="/admin/users/add", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
         script.
             function checkPasswordMatch() {
               var password = $("#newPassword").val();

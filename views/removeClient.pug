@@ -32,15 +32,15 @@ html
                                 span(class="caret")
                                 ul(class="dropdown-menu")
                                     li
-                                        a(href="/users/change") Change Password
+                                        a(href="/changePassword") Change Password
                                     li(role="separator" class="divider")
                                     li
-                                        a(href="/users/logout") Logout
+                                        a(href="/logout") Logout
     if !posted
         div(class='container main')
             div(class="col-md-6 col-md-offset-3")
                 div(class="well")
-                    form(id='db-form', action='/clients/remove', method='post')
+                    form(id='db-form', action='/admin/clients/remove', method='post')
                         h4 Remove a client from Nautilus
                         div(class="form-group")
                             label(for='client-select-box') Select a company name to remove:
@@ -56,9 +56,9 @@ html
                 div(class="well")
                     if ok
                         h4 Successfully removed client from database.
-                        a(href="/clients/remove", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
+                        a(href="/admin/clients/remove", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
                     else
                         h4 Failed to remove client from database.
                         div
                             code= message
-                        a(href="/clients/remove", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
+                        a(href="/admin/clients/remove", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return

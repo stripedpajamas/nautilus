@@ -22,9 +22,9 @@ html
                     ul(class="nav navbar-nav")
                         li
                             a(href="/") Shell
-                        if user && user.isAdmin
-                            li
-                                a(href="/admin") Admin
+                        li(class="active")
+                            a(href="/admin") Admin
+                            span(class="sr-only") (current)
                     if user
                         ul(class="nav navbar-nav navbar-right")
                             li(class="dropdown")
@@ -32,26 +32,28 @@ html
                                 span(class="caret")
                                 ul(class="dropdown-menu")
                                     li
-                                        a(href="/users/change") Change Password
+                                        a(href="/changePassword") Change Password
                                     li(role="separator" class="divider")
                                     li
-                                        a(href="/users/logout") Logout
+                                        a(href="/logout") Logout
         if !posted
             div(class='container main')
                 div(class="col-md-6 col-md-offset-3")
                     div(class="well")
-                        form(id='db-form', action='/users/change', method='post')
-                            h4 Change your password
+                        form(id='db-form', action='/admin/users/change', method='post')
+                            h4 Change a password
+                            div(class="form-group")
+                                label(for='user-select-box') Select a user to change their password:
+                                select(class="form-control input-lg", id='user-select-box', name='usernamePwdChange', tabindex='1', autofocus)
+                                    each usernamePwdChange in users
+                                        option(value=usernamePwdChange) #{usernamePwdChange}
                             div(class="form-group" id='newPwdDiv')
                                 label(for='newPassword') New Password (at least 10 characters):
-                                input(class="form-control input-lg", type='password', name='newPassword', id='newPassword', tabindex='1', autofocus)
+                                input(class="form-control input-lg", type='password', name='newPassword', id='newPassword', tabindex='2', autofocus)
                             div(class="form-group" id='confirmPwdDiv')
                                 label(for='confirmPassword') Confirm Password:
-                                input(class="form-control input-lg", type='password', name='confirmPassword', id='confirmPassword', tabindex='2')
-                            div(class="form-group" id='OldPwdDiv')
-                                label(for='oldPassword') Current Password:
-                                input(class="form-control input-lg", type='password', name='oldPassword', id='oldPassword', tabindex='3')
-                            a(role='button', type="button", class="btn btn-default btn-lg", href="/", tabindex='5') Back
+                                input(class="form-control input-lg", type='password', name='confirmPassword', id='confirmPassword', tabindex='3')
+                            a(role='button', type="button", class="btn btn-default btn-lg", href="/admin", tabindex='5') Back
                             span(class="pull-right")
                                 button(class="disabled btn btn-primary btn-lg", type='submit', tabindex='4' id='changePasswordBtn') Change Password
         else
@@ -60,17 +62,16 @@ html
                     div(class="well")
                         if ok
                             h4 Password changed successfully.
-                            a(href="/users/change", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
+                            a(href="/admin/users/change", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
                         else
                             h4 Password change failed.
                             div
                                 code= message
-                            a(href="/users/change", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
+                            a(href="/admin/users/change", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
         script.
           function checkPasswordMatch() {
             var password = $("#newPassword").val();
             var confirmPassword = $("#confirmPassword").val();
-            var oldPassword = $("#oldPassword").val();
             if (password.length < 10) {
               $("#newPwdDiv").removeClass('has-success').addClass('has-error');
               $("#changePasswordBtn").addClass('disabled');
@@ -83,10 +84,6 @@ html
                 return false;
               } else {
                 $("#confirmPwdDiv").removeClass('has-error').addClass('has-success');
-                if (!oldPassword.length) {
-                  $("#changePasswordBtn").addClass('disabled');
-                  return false;
-                }
                 $("#changePasswordBtn").removeClass('disabled');
                 return true;
               }
@@ -99,5 +96,5 @@ html
             event.preventDefault();
           });
           $(document).ready(function () {
-            $("#newPassword, #confirmPassword, #oldPassword").keyup(checkPasswordMatch);
+            $("#newPassword, #confirmPassword").keyup(checkPasswordMatch);
           });
