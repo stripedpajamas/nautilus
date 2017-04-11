@@ -39,53 +39,53 @@ html
                                     li(role="separator" class="divider")
                                     li
                                         a(href="/logout") Logout
-    if !selected
-        div(class='container main')
-            div(class="col-md-6 col-md-offset-3")
-                div(class="well")
-                    form(id='db-form', action='/admin/users/change', method='post')
-                        h4 Edit User
-                        div(class="form-group")
-                            label(for='user-select-box') Select a user to change:
-                            select(class="form-control input-lg", id='user-select-box', name='userToChange', tabindex='1', autofocus)
-                                each userToChange in users
-                                    option(value=userToChange) #{userToChange}
-                        a(role='button', type="button", class="btn btn-default btn-lg", href="/admin", tabindex='3') Back
-                        span(class="pull-right")
-                            button(class="btn btn-primary btn-lg", type='submit', tabindex='2' id='selectUserBtn') Select User
-    if selected && !posted
-        div(class='container main')
-            div(class="col-md-6 col-md-offset-3")
-                div(class="well")
-                    form(id='db-form', action='/admin/users/change', method='post')
-                        h4 Change a password or admin status
-                        input(type='hidden', id='changeUser', name='changeUser', value=changeUser.username)
-                        div(class="form-group" id='newPwdDiv')
-                            label(for='newPassword') New Password (at least 10 characters):
-                            input(class="form-control input-lg", type='password', name='newPassword', id='newPassword', tabindex='1', autofocus)
-                        div(class="form-group" id='confirmPwdDiv')
-                            label(for='confirmPassword') Confirm Password:
-                            input(class="form-control input-lg", type='password', name='confirmPassword', id='confirmPassword', tabindex='2')
-                        div(class="form-group")
-                            label(for='isAdmin') Admin User?
-                            div(id='isAdminDiv', class='toggle toggle-modern')
-                            input(type='checkbox', class='fake-checkbox', id='isAdmin', name='isAdmin' data-admin-state=changeUser.isAdmin)
-                        a(role='button', type="button", class="btn btn-default btn-lg", href="/admin", tabindex='4') Back
-                        span(class="pull-right")
-                            button(class="btn btn-primary btn-lg", type='submit', tabindex='3' id='changeUserBtn') Change User
+        if !selected
+            div(class='container main')
+                div(class="col-md-6 col-md-offset-3")
+                    div(class="well")
+                        form(id='db-form', action='/admin/users/change', method='post')
+                            h4 Edit User
+                            div(class="form-group")
+                                label(for='user-select-box') Select a user to change:
+                                select(class="form-control input-lg", id='user-select-box', name='userToChange', tabindex='1', autofocus)
+                                    each userToChange in users
+                                        option(value=userToChange) #{userToChange}
+                            a(role='button', type="button", class="btn btn-default btn-lg", href="/admin", tabindex='3') Back
+                            span(class="pull-right")
+                                button(class="btn btn-primary btn-lg", type='submit', tabindex='2' id='selectUserBtn') Select User
+        if selected && !posted
+            div(class='container main')
+                div(class="col-md-6 col-md-offset-3")
+                    div(class="well")
+                        form(id='db-form', action='/admin/users/change', method='post')
+                            h4 Change a password or admin status
+                            input(type='hidden', id='changeUser', name='changeUser', value=changeUser.username)
+                            div(class="form-group" id='newPwdDiv')
+                                label(for='newPassword') New Password (at least 10 characters):
+                                input(class="form-control input-lg", type='password', name='newPassword', id='newPassword', tabindex='1', autofocus)
+                            div(class="form-group" id='confirmPwdDiv')
+                                label(for='confirmPassword') Confirm Password:
+                                input(class="form-control input-lg", type='password', name='confirmPassword', id='confirmPassword', tabindex='2')
+                            div(class="form-group")
+                                label(for='isAdmin') Admin User?
+                                div(id='isAdminDiv', class='toggle toggle-modern')
+                                input(type='checkbox', class='fake-checkbox', id='isAdmin', name='isAdmin' data-admin-state=changeUser.isAdmin)
+                            a(role='button', type="button", class="btn btn-default btn-lg", href="/admin", tabindex='4') Back
+                            span(class="pull-right")
+                                button(class="btn btn-primary btn-lg", type='submit', tabindex='3' id='changeUserBtn') Change User
 
-    if finished
-        div(class='container main')
-            div(class="col-md-6 col-md-offset-3")
-                div(class="well")
-                    if ok
-                        h4 User changed successfully.
-                        a(href="/admin/users/change", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
-                    else
-                        h4 Something went wrong.
-                        div
-                            code= message
-                        a(href="/admin/users/change", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
+        if finished
+            div(class='container main')
+                div(class="col-md-6 col-md-offset-3")
+                    div(class="well")
+                        if ok
+                            h4 User changed successfully.
+                            a(href="/admin/users/change", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
+                        else
+                            h4 Something went wrong.
+                            div
+                                code= message
+                            a(href="/admin/users/change", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
     script.
       function checkPasswordMatch() {
         var password = $("#newPassword").val();

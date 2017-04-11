@@ -30,35 +30,30 @@ html
                         ul(class="nav navbar-nav navbar-right")
                             li(class="dropdown")
                                 a(href="#" class="dropdown-toggle" data-toggle="dropdown" role="button")= 'Logged in: ' + user.username
-                                    span(class="caret")
+                                span(class="caret")
                                 ul(class="dropdown-menu")
                                     li
                                         a(href="/changePassword") Change Password
                                     li(role="separator" class="divider")
                                     li
                                         a(href="/logout") Logout
-        if user
-            div(class='container main')
-                div(class="col-md-6 col-md-offset-3")
-                    div(class="well")
-                        form(id='domain-form', action='/shell', method='post')
-                            div(class="form-group")
-                                label(for='client-select-box', class='h4') Select a client to get started:
-                                select(class="form-control input-lg", id='client-select-box', name='clientName', autofocus)
-                                    each client in clients
-                                        option(value=client) #{client}
-                            div(class="text-right")
-                                button(class="btn btn-primary btn-lg", type='submit') Submit
-        else
-            div(class='container main')
-                div(class="col-md-6 col-md-offset-3")
-                    div(class="well")
-                        form(id='login-form', action='/login', method='post')
-                            div(class="form-group")
-                                label(for='username') Username:
-                                input(class="form-control input-lg", type='text', name='username', id='username', autofocus)
-                            div(class="form-group")
-                                label(for='password') Password:
-                                input(class="form-control input-lg", type='password', name='password', id='password')
-                            div(class='text-right')
-                                button(class="btn btn-primary btn-lg", type='submit', id='login') Login
+        div(class='container main')
+            div(class="col-md-6 col-md-offset-3")
+                div(class="well")
+                    form(id='db-form', action='/admin/masterReset', method='post')
+                        h4 Change the admin password for ALL domains in database
+                        h3
+                            strong
+                                mark WARNING: This is a big deal.
+                        div(class="form-group" id='oldPwdDiv')
+                            label(for='oldPassword') Current Password:
+                            input(class="form-control input-lg", type='password', name='oldPassword', id='oldPassword', tabindex='1', autofocus)
+                        div(class="form-group" id='newPwdDiv')
+                            label(for='newPassword') New Password:
+                            input(class="form-control input-lg", type='password', name='newPassword', id='newPassword', tabindex='2')
+                        div(class="form-group" id='confirmPwdDiv')
+                            label(for='confirmPassword') Confirm Password:
+                            input(class="form-control input-lg", type='password', name='confirmPassword', id='confirmPassword', tabindex='3')
+                        a(role='button', type="button", class="btn btn-default btn-lg", href="/admin", tabindex='5') Back to Safety
+                        span(class="pull-right")
+                            button(class="btn btn-danger btn-lg", type='submit', tabindex='4' id='changeUserBtn') Change Password

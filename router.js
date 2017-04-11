@@ -330,4 +330,15 @@ router.route('/admin/clients/change')
     }
   });
 
+router.route('/admin/masterReset')
+  .all(ensureLoggedIn('/'), checkAdmin, (req, res, next) => {
+    if (req.user.username !== process.env.masterAdmin) {
+      return res.redirect('/');
+    }
+    return next();
+  })
+  .get((req, res) => {
+    res.render('masterReset', { user: req.user });
+  });
+
 module.exports = router;
