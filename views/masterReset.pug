@@ -37,23 +37,86 @@ html
                                     li(role="separator" class="divider")
                                     li
                                         a(href="/logout") Logout
-        div(class='container main')
-            div(class="col-md-6 col-md-offset-3")
-                div(class="well")
-                    form(id='db-form', action='/admin/masterReset', method='post')
-                        h4 Change the admin password for ALL domains in database
-                        h3
-                            strong
-                                mark WARNING: This is a big deal.
-                        div(class="form-group" id='oldPwdDiv')
-                            label(for='oldPassword') Current Password:
-                            input(class="form-control input-lg", type='password', name='oldPassword', id='oldPassword', tabindex='1', autofocus)
-                        div(class="form-group" id='newPwdDiv')
-                            label(for='newPassword') New Password:
-                            input(class="form-control input-lg", type='password', name='newPassword', id='newPassword', tabindex='2')
-                        div(class="form-group" id='confirmPwdDiv')
-                            label(for='confirmPassword') Confirm Password:
-                            input(class="form-control input-lg", type='password', name='confirmPassword', id='confirmPassword', tabindex='3')
-                        a(role='button', type="button", class="btn btn-default btn-lg", href="/admin", tabindex='5') Back to Safety
-                        span(class="pull-right")
-                            button(class="btn btn-danger btn-lg", type='submit', tabindex='4' id='changeUserBtn') Change Password
+        div(id="page-loader")
+            img(class="main" src="/img/loading.svg")
+        if !posted
+            div(class='container main')
+                div(class="col-md-6 col-md-offset-3")
+                    div(class="well")
+                        form(id='db-form', action='/admin/masterReset', method='post')
+                            h4 Change the admin password for ALL domains in database
+                            h5
+                                strong
+                                    mark WARNING: This is a big deal. Please be patient.
+                            div(class="form-group" id='oldPwdDiv')
+                                label(for='oldPassword') Current Password:
+                                input(class="form-control input-lg", type='password', name='oldPassword', id='oldPassword', tabindex='1', autofocus)
+                            div(class="form-group" id='newPwdDiv')
+                                label(for='newPassword') New Password:
+                                input(class="form-control input-lg", type='password', name='newPassword', id='newPassword', tabindex='2')
+                            div(class="form-group" id='confirmPwdDiv')
+                                label(for='confirmPassword') Confirm Password:
+                                input(class="form-control input-lg", type='password', name='confirmPassword', id='confirmPassword', tabindex='3')
+                            a(role='button', type="button", class="btn btn-default btn-lg", href="/admin", tabindex='5') Back to Safety
+                            span(class="pull-right")
+                                button(class="btn btn-danger btn-lg", type='submit', tabindex='4' id='changePasswordBtn') Change Password
+        else
+            div(class='container main')
+                div(class="col-md-6 col-md-offset-3")
+                    div(class="well")
+                        if ok
+                            h4 Password change results:
+                            table(class='table table-striped')
+                                tr
+                                    th Domain
+                                    th Result
+                                each item in output
+                                    tr
+                                        td= item[0]
+                                        td= item[1]
+                            a(href="/admin", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
+                        else
+                            h4 Something went wrong.
+                                div
+                                    br
+                                    code= message
+                                    br
+                                a(href="/admin", class="btn btn-default btn-lg", type='button', role="button", tabindex='1') Return
+        script.
+          function checkPasswordMatch() {
+            var password = $("#newPassword").val();
+            var confirmPassword = $("#confirmPassword").val();
+            var oldPassword = $("#oldPassword").val();
+            if (oldPassword.length < 8) {
+              $("#oldPwdDiv").removeClass('has-success').addClass('has-error');
+              return false;
+            } else {
+              $("#oldPwdDiv").removeClass('has-error').addClass('has-success');
+              if (password.length < 8) {
+                $("#newPwdDiv").removeClass('has-success').addClass('has-error');
+                $("#changePasswordBtn").addClass('disabled');
+                return false;
+              } else {
+                $("#newPwdDiv").removeClass('has-error').addClass('has-success');
+                if (password !== confirmPassword) {
+                  $("#confirmPwdDiv").removeClass('has-success').addClass('has-error');
+                  $("#changePasswordBtn").addClass('disabled');
+                  return false;
+                } else {
+                  $("#confirmPwdDiv").removeClass('has-error').addClass('has-success');
+                  $("#changePasswordBtn").removeClass('disabled');
+                  return true;
+                }
+              }
+            }
+          }
+          $("#db-form").submit(function (event) {
+            if (checkPasswordMatch()) {
+              $("#page-loader").css('display', 'block');
+              return
+            }
+            event.preventDefault();
+          });
+          $(document).ready(function () {
+            $("#newPassword, #confirmPassword, #oldPassword").keyup(checkPasswordMatch);
+          });

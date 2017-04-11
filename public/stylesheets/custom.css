@@ -5,10 +5,12 @@ html {
 body {
     /* Margin bottom by footer height */
     margin-bottom: 80px;
+    transition:background-color 5s ease;
 }
 
 .main {
-    padding-top: 150px;
+    margin-top: 80px;
+    padding-top: 5%;
 }
 
 .navbar {
@@ -72,4 +74,18 @@ body {
 
 .fake-checkbox {
     display: none;
+}
+
+#page-loader {
+    position: absolute;
+    top: 0;
+    bottom: 0%;
+    left: 0;
+    right: 0%;
+    background-color: white;
+    opacity: 0.8;
+    z-index: 99;
+    display: none;
+    text-align: center;
+    width: 100%;
 }

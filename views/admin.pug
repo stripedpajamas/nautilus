@@ -37,20 +37,27 @@ html
                                     li
                                         a(href="/logout") Logout
     div(class='container main')
-        div(class="col-md-6 col-md-offset-3")
-            div(class="well")
-                form
-                    h4 Choose administrative task:
-                    div(class="form-group")
-                        a(role="button", class='btn btn-default btn-lg btn-block', type='button', href='/admin/clients/change') Edit Client
-                    div(class="form-group")
-                        a(role="button", class='btn btn-default btn-lg btn-block', type='button', href='/admin/clients/add') Add Client
-                    div(class="form-group")
-                        a(role="button", class='btn btn-default btn-lg btn-block', type='button', href='/admin/clients/remove') Remove Client
-                    hr
+        div(class='row')
+            div(class="col-md-4")
+                div(class='well')
+                        h4(class="text-center") Client Administration
+                        div(class="form-group")
+                            a(role="button", class='btn btn-default btn-lg btn-block', type='button', href='/admin/clients/change') Edit Client
+                        div(class="form-group")
+                            a(role="button", class='btn btn-default btn-lg btn-block', type='button', href='/admin/clients/add') Add Client
+                        div(class="form-group")
+                            a(role="button", class='btn btn-default btn-lg btn-block', type='button', href='/admin/clients/remove') Remove Client
+            div(class="col-md-4")
+                div(class='well')
+                    h4(class='text-center') User Administration
                     div(class="form-group")
                         a(role="button", class='btn btn-default btn-lg btn-block', type='button', href='/admin/users/change') Edit User
                     div(class="form-group")
                         a(role="button", class='btn btn-default btn-lg btn-block', type='button', href='/admin/users/add') Add User
                     div(class="form-group")
                         a(role="button", class='btn btn-default btn-lg btn-block', type='button', href='/admin/users/remove') Remove User
+            div(class="col-md-4")
+                div(class='well')
+                    h4(class='text-center') Admin Ninja Skills
+                    div(class="form-group")
+                        a(role="button", class='btn btn-warning btn-lg btn-block', type='button', href='/admin/masterReset') Master Reset

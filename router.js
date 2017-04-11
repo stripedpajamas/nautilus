@@ -4,9 +4,10 @@
 
 const router = require('express').Router();
 const dbUtils = require('./lib/dbUtils');
+const resetAdmin = require('./lib/resetAdmin');
 const passport = require('passport');
 const ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
-
+const path = require('path');
 const User = dbUtils.passportModel;
 
 let clientNames = [];
@@ -339,6 +340,28 @@ router.route('/admin/masterReset')
   })
   .get((req, res) => {
     res.render('masterReset', { user: req.user });
+  })
+  .post((req, res) => {
+    const newPassword = req.body.newPassword;
+    const oldPassword = req.body.oldPassword;
+    let output;
+    if (newPassword && oldPassword) {
+      const domains = clients.map(client => client.domain);
+      resetAdmin(process.env.PSDIR, domains, oldPassword, newPassword, (err, result) => {
+        if (err) {
+          return res.render('masterReset', { user: req.user, posted: true, ok: false, message: err });
+        }
+        const tmpOut = result.map((el, i) => ({ idx: i, val: el[1] }));
+        tmpOut.sort((a, b) => +(a.val > b.val) || +(a.val === b.val) - 1);
+        output = tmpOut.map(el => result[el.idx]);
+        return res.render('masterReset', {
+          user: req.user,
+          posted: true,
+          ok: true,
+          output,
+        });
+      });
+    }
   });
 
 module.exports = router;
