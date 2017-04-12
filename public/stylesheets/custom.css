@@ -24,31 +24,6 @@ body {
     width: 200px;
     line-height: 80px;
 }
-@media only screen and (max-width: 860px) {
-    .navbar-center-img {
-        display: none;
-    }
-}
-@media (min-width: 768px) {
-    .nav.nav-center {
-        display: inline-block;
-        left: 0;
-        right: 0;
-        margin: 0 0 0 -200px;
-        float:none;
-    }
-
-    .navbar .navbar-collapse {
-        text-align: center;
-    }
-}
-
-.navbar-center-img {
-    padding: 5px 15px 0;
-    height: 75px;
-    width: 155px;
-    line-height: 80px;
-}
 
 .navbar-toggle {
     /* (80px - button height 34px) / 2 = 23px */
