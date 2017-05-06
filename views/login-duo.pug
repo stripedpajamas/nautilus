@@ -1,0 +1,51 @@
+html
+    head
+        title= 'Nautilus'
+        script(src="https://code.jquery.com/jquery-3.2.1.min.js", integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=", crossorigin="anonymous")
+        link(rel="stylesheet", href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css", integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u", crossorigin="anonymous")
+        script(src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js", integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa", crossorigin="anonymous")
+        link(rel='stylesheet', href='/stylesheets/custom.css')
+        script(src="/scripts/Duo-Web-v1.bundled.min.js")
+        script.
+          Duo.init({
+            host: '#{host}',
+            post_action: '#{post_action}',
+            sig_request: '#{sig_request}',
+          });
+        meta(name="viewport", content="width=device-width, initial-scale=1")
+    body
+        nav(class="navbar navbar-default navbar-fixed-top navbar-inverse")
+            div(class="container-fluid")
+                div(class="navbar-header")
+                    button(type="button", class="navbar-toggle collapsed",
+                    data-toggle="collapse", data-target="#nautilus-navbar-collapse",
+                    aria-expanded="false")
+                        span(class="sr-only") Toggle navigation
+                        span(class="icon-bar")
+                        span(class="icon-bar")
+                        span(class="icon-bar")
+                    a(class="navbar-brand", href='/')
+                div(class="collapse navbar-collapse" id="nautilus-navbar-collapse")
+                    ul(class="nav navbar-nav")
+                        li(class="active")
+                            a(href="/") Shell
+                            span(class="sr-only") (current)
+                        if user && user.isAdmin
+                            li
+                                a(href="/admin") Admin
+                    if user
+                        ul(class="nav navbar-nav navbar-right")
+                            li(class="dropdown")
+                                a(href="#" class="dropdown-toggle" data-toggle="dropdown" role="button")= 'Logged in: ' + user.username
+                                span(class="caret")
+                                ul(class="dropdown-menu")
+                                    li
+                                        a(href="/changePassword") Change Password
+                                    li(role="separator" class="divider")
+                                    li
+                                        a(href="/logout") Logout
+        div(class='container main')
+            div(class="col-md-6 col-md-offset-3")
+                div(class="iframe_div")
+                    iframe(id="duo_iframe", frameborder="0", allowtransparency)
+                form(method="POST", style="display:none;", id="duo_form")

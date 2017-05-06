@@ -17,9 +17,17 @@ const router = require('./router');
 // *** passport stuff
 const passport = require('passport');
 const LocalStrategy = require('passport-local');
+const DuoStrategy = require('./lib/passport-duo').Strategy;
 
 const User = dbUtils.passportModel;
 passport.use(new LocalStrategy(User.authenticate()));
+
+const ikey = process.env.duo_ikey;
+const skey = process.env.duo_skey;
+const host = process.env.duo_host;
+const loginUrl = '/login-duo';
+
+passport.use(new DuoStrategy(ikey, skey, host, loginUrl));
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 // *** end passport stuff

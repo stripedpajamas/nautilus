@@ -7,9 +7,8 @@ const dbUtils = require('./lib/dbUtils');
 const resetAdmin = require('./lib/resetAdmin');
 const passport = require('passport');
 const ensureLoggedIn = require('connect-ensure-login').ensureLoggedIn;
-const path = require('path');
-const User = dbUtils.passportModel;
 
+const User = dbUtils.passportModel;
 let clientNames = [];
 let clients = null;
 
@@ -25,6 +24,12 @@ function checkAdmin(req, res, next) {
   }
   return next();
 }
+function ensureSecondFactor(req, res, next) {
+  if (req.session.secondFactor === 'duo') {
+    return next();
+  }
+  return res.redirect('/auth-duo');
+}
 function handleErrors(res, endpoint, user, selected, posted, ok, message, finished) {
   return res.render(endpoint, {
     user,
@@ -36,9 +41,34 @@ function handleErrors(res, endpoint, user, selected, posted, ok, message, finish
   });
 }
 
-router.post('/login', passport.authenticate('local', { failureRedirect: '/', successRedirect: '/' }));
+router.post('/login',
+  passport.authenticate('local', { failureRedirect: '/' }), ensureSecondFactor);
+
+router.get('/login-duo',
+  ensureLoggedIn('/'),
+  (req, res) => {
+    res.render('login-duo', {
+      user: req.user,
+      host: req.query.host,
+      post_action: req.query.post_action,
+      sig_request: req.query.signed_request,
+    });
+  });
+
+router.get('/auth-duo', ensureLoggedIn(),
+  passport.authenticate('duo', { failureRedirect: '/auth-duo' }),
+  (req, res, next) => next());
+
+router.post('/auth-duo',
+  passport.authenticate('duo', { failureRedirect: '/auth-duo' }),
+  (req, res) => {
+    req.session.secondFactor = 'duo';
+    res.redirect('/');
+  });
+
 router.get('/logout', (req, res) => {
   req.logout();
+  req.session.destroy();
   res.redirect('/');
 });
 
@@ -51,6 +81,7 @@ router.route('/shell')
     res.redirect('/');
   })
   .post(ensureLoggedIn({ setReturnTo: false }),
+  ensureSecondFactor,
   (req, res) => {
     const clientName = req.body.clientName;
     const clientRec = clients.find(client => clientName === client.name);
@@ -60,13 +91,14 @@ router.route('/shell')
 
 router.get('/admin',
   ensureLoggedIn('/'),
+  ensureSecondFactor,
   checkAdmin,
   (req, res) => {
     res.render('admin', { user: req.user });
   });
 
 router.route('/admin/clients/add')
-  .all(ensureLoggedIn('/'), checkAdmin)
+  .all(ensureLoggedIn('/'), checkAdmin, ensureSecondFactor)
   .get((req, res) => {
     res.render('addClient', { user: req.user });
   })
@@ -99,7 +131,7 @@ router.route('/admin/clients/add')
   });
 
 router.route('/admin/users/add')
-  .all(ensureLoggedIn('/'), checkAdmin)
+  .all(ensureLoggedIn('/'), checkAdmin, ensureSecondFactor)
   .get((req, res) => {
     res.render('addUser', { user: req.user });
   })
@@ -120,7 +152,7 @@ router.route('/admin/users/add')
   });
 
 router.route('/admin/users/remove')
-  .all(ensureLoggedIn('/'), checkAdmin)
+  .all(ensureLoggedIn('/'), checkAdmin, ensureSecondFactor)
   .get((req, res) => {
     dbUtils.getUsers((err, users) => {
       if (err) {
@@ -141,7 +173,7 @@ router.route('/admin/users/remove')
   });
 
 router.route('/admin/clients/remove')
-  .all(ensureLoggedIn('/'), checkAdmin)
+  .all(ensureLoggedIn('/'), checkAdmin, ensureSecondFactor)
   .get((req, res) => {
     res.render('removeClient', { clients: clientNames, user: req.user });
   })
@@ -173,7 +205,7 @@ router.route('/admin/clients/remove')
   });
 
 router.route('/changePassword')
-  .all(ensureLoggedIn('/'))
+  .all(ensureLoggedIn('/'), ensureSecondFactor)
   .get((req, res) => {
     res.render('changePassword', { user: req.user });
   })
@@ -199,7 +231,7 @@ router.route('/changePassword')
   });
 
 router.route('/admin/users/change')
-  .all(ensureLoggedIn('/'), checkAdmin)
+  .all(ensureLoggedIn('/'), checkAdmin, ensureSecondFactor)
   .get((req, res) => {
     dbUtils.getUsers((err, users) => {
       if (err) {
@@ -268,7 +300,7 @@ router.route('/admin/users/change')
   });
 
 router.route('/admin/clients/change')
-  .all(ensureLoggedIn('/'), checkAdmin)
+  .all(ensureLoggedIn('/'), checkAdmin, ensureSecondFactor)
   .get((req, res) => {
     res.render('changeClient', { clients: clientNames, user: req.user });
   })
@@ -339,7 +371,7 @@ router.route('/admin/clients/change')
   });
 
 router.route('/admin/masterReset')
-  .all(ensureLoggedIn('/'), checkAdmin, (req, res, next) => {
+  .all(ensureLoggedIn('/'), checkAdmin, ensureSecondFactor, (req, res, next) => {
     if (req.user.username !== process.env.masterAdmin) {
       return res.redirect('/');
     }

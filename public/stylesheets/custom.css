@@ -100,3 +100,13 @@ body {
     display: none;
     width: 100%;
 }
+
+.iframe_div {
+    width: 90%;
+    max-width: 620px;
+    margin: 0 auto;
+}
+#duo_iframe {
+    height: 330px;
+    width: 100%;
+}
