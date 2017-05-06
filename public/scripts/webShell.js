@@ -1,7 +1,18 @@
 const socket = io();
 
 // initialize PS connection with the selected client domain
-socket.emit('initCon', document.getElementById('in').getAttribute('data-domain'));
+function init(domain, username, password) {
+  const connectionInfo = {
+    domain,
+    defaultCreds: true,
+  };
+  if (username && password) {
+    connectionInfo.username = username;
+    connectionInfo.password = password;
+    connectionInfo.defaultCreds = false;
+  }
+  socket.emit('initCon', connectionInfo);
+}
 
 const commandInput = document.getElementById('command');
 const outElement = document.getElementById('out');
@@ -41,10 +52,7 @@ commandInput.onkeydown = function (keyboardEvent) {
   return true;
 };
 
-function cleanExit(alreadyExited) {
-  if (!alreadyExited) {
-    sendCommand('exit');
-  }
+function cleanExit() {
   addResponse('Ending session...');
   setTimeout(function () {
     window.location.href = '../';
@@ -54,7 +62,7 @@ function cleanExit(alreadyExited) {
 document.onkeyup = function (event) {
   const e = event || window.event;
   if (e.ctrlKey && e.which === 69) {
-    cleanExit();
+    sendCommand('exit');
   }
 };
 
@@ -63,5 +71,5 @@ socket.on('commandResponse', function (response) {
 });
 
 socket.on('exit', function () {
-  cleanExit(true);
+  cleanExit();
 });

@@ -88,7 +88,7 @@ body {
     display: none;
 }
 
-#page-loader {
+.page-loader {
     position: absolute;
     top: 0;
     bottom: 0%;
@@ -98,6 +98,5 @@ body {
     opacity: 0.8;
     z-index: 99;
     display: none;
-    text-align: center;
     width: 100%;
 }

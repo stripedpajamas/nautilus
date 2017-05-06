@@ -62,9 +62,8 @@ app.use(passport.session());
 app.use(router);
 
 const PSDIR = process.env.PSDIR || path.resolve(__dirname, '../');
-const adminUser = process.env.adminUser; // the admin user used to connect to the O365 clients
 
 io.on('connection', (socket) => {
-  psSocket(socket, adminUser, PSDIR);
+  psSocket(socket, PSDIR);
 });
 

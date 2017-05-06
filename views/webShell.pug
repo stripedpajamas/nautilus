@@ -29,13 +29,48 @@ html
                                 a(href="/admin") Admin
                     ul(class="nav navbar-nav navbar-right")
                         li
-                            a(href="#", onclick='cleanExit();')= 'End Session: ' + clientDomain
+                            a(href="#", onclick='cleanExit();')= 'End Session: ' + clientRec.domain
+        div(id='auth-overlay', class='page-loader')
+            div(class='container main')
+                div(class="col-md-6 col-md-offset-3")
+                    div(class="well")
+                        h3(class='text-center') Enter credentials for #{clientRec.name}:
+                        hr
+                        form(id='login-form', method='post')
+                            div(class="form-group")
+                                label(for='username') Username:
+                                input(class="form-control input-lg", type='text', name='username', id='username', autofocus)
+                            div(class="form-group")
+                                label(for='password') Password:
+                                input(class="form-control input-lg", type='password', name='password', id='password')
+                            a(role='button', type="button", class="btn btn-default btn-lg", href="/") Cancel
+                            span(class="pull-right")
+                                button(class="btn btn-primary btn-lg", type='submit', id='login') Login
         div(class='command-output', id='out')
         footer(class="footer")
             div(class="container-fluid")
                 div(class="form-horizontal")
-                    div(class="form-group", id='in', data-domain=clientDomain)
+                    div(class="form-group", id='in')
                         label(for="command" class="col-sm-1 control-label lb-lg") Command:
                         div(class="col-sm-10")
                             input(id="command", class="input-lg form-control", type="text", autofocus, autocomplete="off")
     script(src='/scripts/webShell.js')
+    if !clientRec.defaultCreds
+        - var username;
+        - var password;
+        script.
+            $(function() {
+                $('#auth-overlay').css('display', 'block');
+                $('#username').focus();
+                $('#login-form').submit(function(e) {
+                  username = $('#username').val();
+                  password = $('#password').val();
+                  $('#auth-overlay').css('display', 'none');
+                  $('#command').focus();
+                  init('#{clientRec.domain}', username, password);
+                  e.preventDefault();
+                });
+            })
+    else
+        script.
+            init('#{clientRec.domain}');

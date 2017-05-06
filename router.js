@@ -54,7 +54,8 @@ router.route('/shell')
   (req, res) => {
     const clientName = req.body.clientName;
     const clientRec = clients.find(client => clientName === client.name);
-    res.render('webShell', { clientDomain: clientRec.domain, user: req.user });
+    // check for defaultCreds switch in client record. set switches appropriately.
+    res.render('webShell', { clientRec, user: req.user });
   });
 
 router.get('/admin',
@@ -72,8 +73,9 @@ router.route('/admin/clients/add')
   .post((req, res) => {
     const newClientName = req.body.newClientName;
     const newClientDomain = req.body.newClientDomain;
+    const newClientUsesDefaultCreds = req.body.defaultCreds === 'on';
     if (newClientName && newClientDomain) {
-      dbUtils.addClient(newClientName, newClientDomain, (err) => {
+      dbUtils.addClient(newClientName, newClientDomain, newClientUsesDefaultCreds, (err) => {
         if (err) {
           return res.render('addClient', { user: req.user, posted: true, ok: false, message: err });
         }
@@ -287,6 +289,7 @@ router.route('/admin/clients/change')
       const clientToChangeID = req.body.changeClient;
       const newName = req.body.newClientName;
       const newDomain = req.body.newClientDomain;
+      const newDefaultCreds = req.body.defaultCreds === 'on';
       dbUtils.findClientById(clientToChangeID, (findErr, client) => {
         if (findErr) {
           return handleErrors(res, 'changeClient', req.user, true, true, false, findErr, true);
@@ -299,6 +302,10 @@ router.route('/admin/clients/change')
         }
         if (client.domain !== newDomain) {
           clientToBeChanged.domain = newDomain;
+          changed = true;
+        }
+        if (client.defaultCreds !== newDefaultCreds) {
+          clientToBeChanged.defaultCreds = newDefaultCreds;
           changed = true;
         }
         if (changed) {
