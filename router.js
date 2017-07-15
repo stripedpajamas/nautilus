@@ -86,7 +86,7 @@ router.route('/shell')
     const clientName = req.body.clientName;
     const clientRec = clients.find(client => clientName === client.name);
     // check for defaultCreds switch in client record. set switches appropriately.
-    res.render('webShell', { clientRec, user: req.user });
+    res.render('webShell', { clients: clientNames, clientRec, user: req.user });
   });
 
 router.get('/admin',
