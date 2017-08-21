@@ -106,8 +106,10 @@ router.route('/admin/clients/add')
     const newClientName = req.body.newClientName;
     const newClientDomain = req.body.newClientDomain;
     const newClientUsesDefaultCreds = req.body.defaultCreds === 'on';
+    const newClientIncludeLicenseCheck = req.body.includeLicenseCheck === 'on';
+    const newClientIncludeExpireCheck = req.body.includeExpireCheck === 'on';
     if (newClientName && newClientDomain) {
-      dbUtils.addClient(newClientName, newClientDomain, newClientUsesDefaultCreds, (err) => {
+      dbUtils.addClient(newClientName, newClientDomain, newClientUsesDefaultCreds, newClientIncludeLicenseCheck, newClientIncludeExpireCheck, (err) => {
         if (err) {
           return res.render('addClient', { user: req.user, posted: true, ok: false, message: err });
         }
@@ -322,6 +324,8 @@ router.route('/admin/clients/change')
       const newName = req.body.newClientName;
       const newDomain = req.body.newClientDomain;
       const newDefaultCreds = req.body.defaultCreds === 'on';
+      const newIncludeLicenseCheck = req.body.includeLicenseCheck === 'on';
+      const newIncludeExpireCheck = req.body.includeExpireCheck === 'on';
       dbUtils.findClientById(clientToChangeID, (findErr, client) => {
         if (findErr) {
           return handleErrors(res, 'changeClient', req.user, true, true, false, findErr, true);
@@ -339,6 +343,12 @@ router.route('/admin/clients/change')
         if (client.defaultCreds !== newDefaultCreds) {
           clientToBeChanged.defaultCreds = newDefaultCreds;
           changed = true;
+        }
+        if (client.includeLicenseCheck !== newIncludeLicenseCheck) {
+          clientToBeChanged.includeLicenseCheck = newIncludeLicenseCheck
+        }
+        if (client.includeExpireCheck !== newIncludeExpireCheck) {
+          clientToBeChanged.includeExpireCheck = newIncludeExpireCheck
         }
         if (changed) {
           return client.save((saveErr) => {
