@@ -346,9 +346,11 @@ router.route('/admin/clients/change')
         }
         if (client.includeLicenseCheck !== newIncludeLicenseCheck) {
           clientToBeChanged.includeLicenseCheck = newIncludeLicenseCheck
+          changed = true;
         }
         if (client.includeExpireCheck !== newIncludeExpireCheck) {
           clientToBeChanged.includeExpireCheck = newIncludeExpireCheck
+          changed = true;
         }
         if (changed) {
           return client.save((saveErr) => {
